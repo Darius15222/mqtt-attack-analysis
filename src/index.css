@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg: #0a0e14;
+  --color-panel: #111821;
+  --color-panel2: #0d131b;
+  --color-line: #1f2a37;
+  --color-muted: #8b98a9;
+  --color-text: #d7dee8;
+  --color-cyan: #22d3ee;
+  --color-green: #4ade80;
+  --color-violet: #a78bfa;
+  --color-amber: #fbbf24;
+  --color-blue: #60a5fa;
+}
+
+html { background: var(--color-bg); color-scheme: dark; }
+body { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+::selection { background: color-mix(in srgb, var(--color-cyan) 35%, transparent); }
+
+/* fundal cu grilă fină, pentru hero */
+.grila {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-cyan) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-cyan) 7%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.shiki { background: transparent !important; }
+.shiki code { counter-reset: linie; }
+.shiki code .line::before {
+  counter-increment: linie; content: counter(linie);
+  display: inline-block; width: 2.5rem; margin-right: 1rem; text-align: right; color: #3b4757;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #1f2a37; border-radius: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* fără ligaturi în cod: <- și == rămân cum sunt scrise */
+pre, code, .font-mono { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
