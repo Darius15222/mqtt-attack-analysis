@@ -1,30 +1,127 @@
-import sys, pandas as pd, numpy as np, statsmodels.api as sm
-from statsmodels.stats.outliers_influence import variance_inflation_factor as vif
+"""Corelații pe clase, regresii liniare, VIF și regresie logistică pentru MQTTset (cap. 7-9).
+
+Reproduce cifrele din:
+  - matricea Spearman pe tot setul și pe fiecare clasă (cap. 7);
+  - verificările pe flood / tcp.len > 1460 și valorile maxime (cap. 8);
+  - regresiile liniare 1-3, inclusiv variantele logaritmice (cap. 8-9);
+  - VIF pentru 5 și 3 predictori;
+  - regresia logistică: modelul final cu 3 predictori, separarea modelului cu 5 predictori
+    (pașii 10-30), probabilitățile prezise pe clase, tabelul 9.2, msgtype pe clase (cap. 9).
+
+Intrare:  fișierul CSV MQTTset (merge și .zip, pandas îl citește direct).
+Ieșire:   doar text la stdout.
+
+Rulare:
+    python 02_cap7-9_regresii_logistica.py ../mqttdataset_reduced.csv.zip
+"""
+import sys
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
 from scipy import stats
-d = pd.read_csv(sys.argv[1], low_memory=False); d["is_attack"]=(d.target!="legitimate").astype(int)
-r13=["tcp.time_delta","tcp.len","mqtt.len","mqtt.kalive","mqtt.qos","mqtt.dupflag","mqtt.retain","mqtt.conflag.cleansess","mqtt.conflag.passwd","mqtt.conflag.uname","mqtt.proto_len","mqtt.ver","mqtt.conack.val"]
-pd.set_option("display.width",250); sp=d[r13].corr("spearman"); print(sp.round(2).to_string())
-for k,g in d.groupby("target"):
-    c=[x for x in r13 if g[x].nunique()>1]; m=g[c].corr("spearman").values; iu=np.triu_indices(len(c),1); print(k,"pairs",len(iu[0]),"r>=0.995",(m[iu]>=0.995).sum())
-print("pearson qos-mqtt.len", d["mqtt.qos"].corr(d["mqtt.len"]))
-f=d[d.target=="flood"]; print("flood mqtt.len when tcp.len>1460", f[f["tcp.len"]>1460]["mqtt.len"].describe().to_dict()); print("flood ACK empty", ((f["tcp.flags"]=="0x00000010")&(f["tcp.len"]==0)).sum(), "tcp.len>1460 all", (d["tcp.len"]>1460).sum(), d[d["tcp.len"]>1460].target.unique())
-print("legit tcp.len max", d[d.target=="legitimate"]["tcp.len"].max(), "time_delta max", d["tcp.time_delta"].max(), (d["tcp.time_delta"]>50).sum())
-X=sm.add_constant(d[["tcp.len"]]); m1=sm.OLS(d["mqtt.len"],X).fit(); print("R1",m1.params.round(4).to_dict(), round(m1.rsquared,4), "ssr",m1.ssr, "res skew/kurt", round(stats.skew(m1.resid),2), round(stats.kurtosis(m1.resid),1))
-L=np.log1p(d[["tcp.len","mqtt.len"]]); m1l=sm.OLS(L["mqtt.len"],sm.add_constant(L["tcp.len"])).fit(); print("R1log",m1l.params.round(3).to_dict(), round(m1l.rsquared,3), round(stats.skew(m1l.resid),2), round(stats.kurtosis(m1l.resid),1))
-m2=sm.OLS(d["tcp.time_delta"],sm.add_constant(d[["tcp.len","mqtt.len"]])).fit(); print("R2",m2.params.to_dict(), m2.pvalues.to_dict(), m2.rsquared, stats.skew(m2.resid), stats.kurtosis(m2.resid))
-for k,g in d.groupby("target"):
-    a=sm.OLS(g["mqtt.len"],sm.add_constant(g["tcp.len"])).fit(); gl=np.log1p(g[["tcp.len","mqtt.len"]]); b=sm.OLS(gl["mqtt.len"],sm.add_constant(gl["tcp.len"])).fit()
-    print("R3",k,len(g),a.params.round(4).tolist(), round(a.rsquared,3), round(b.rsquared,3))
-P=["tcp.len","mqtt.len","tcp.time_delta","mqtt.qos","mqtt.dupflag"]; Xv=sm.add_constant(d[P]).values
-print("VIF5",[round(vif(Xv,i),2) for i in range(1,6)]); X3=sm.add_constant(d[["tcp.len","tcp.time_delta","mqtt.len"]]).values; print("VIF3",[round(vif(X3,i),2) for i in range(1,4)])
-g6=sm.GLM(d.is_attack,sm.add_constant(d[["tcp.len","tcp.time_delta","mqtt.len"]]),family=sm.families.Binomial()).fit()
-print("LOG6",g6.params.round(4).to_dict(), g6.bse.round(4).to_dict(), g6.tvalues.round(2).to_dict(), g6.null_deviance, g6.deviance, g6.aic, "iters", g6.fit_history["iteration"])
-for it in [10,15,20,25,30]:
-    gA=sm.GLM(d.is_attack,sm.add_constant(d[P]),family=sm.families.Binomial()).fit(maxiter=it, tol=1e-30)
-    print("LOG5 it",it, gA.params.round(3).to_dict(), gA.bse.round(1).to_dict(), round(gA.deviance,1))
-pr=pd.Series(g6.predict(),index=d.index); 
-for k in d.target.unique():
-    s=pr[d.target==k]; print("prob",k,"max",round(s.max(),3),"med",round(s.median(),3),">0.9",round((s>0.9).mean(),3),"~0.42",round((np.abs(s-0.4235)<0.005).mean(),3))
-att=d[d.is_attack==1]; leg=d[d.is_attack==0]
-for c in ["tcp.time_delta","tcp.len","mqtt.len"]: print("9.2",c,att[c].median(),att[c].quantile([.25,.75]).tolist())
-print("msgtype by class", pd.crosstab(d["mqtt.msgtype"],d.target).to_string())
+from statsmodels.stats.outliers_influence import variance_inflation_factor as vif
+
+date = pd.read_csv(sys.argv[1], low_memory=False)
+date["is_attack"] = (date.target != "legitimate").astype(int)
+
+# Cele 13 coloane numerice folosite în matricea de corelație (cap. 7).
+COLOANE_NUMERICE = [
+    "tcp.time_delta", "tcp.len", "mqtt.len", "mqtt.kalive", "mqtt.qos",
+    "mqtt.dupflag", "mqtt.retain", "mqtt.conflag.cleansess", "mqtt.conflag.passwd",
+    "mqtt.conflag.uname", "mqtt.proto_len", "mqtt.ver", "mqtt.conack.val",
+]
+PREDICTORI_5 = ["tcp.len", "mqtt.len", "tcp.time_delta", "mqtt.qos", "mqtt.dupflag"]
+PREDICTORI_3 = ["tcp.len", "tcp.time_delta", "mqtt.len"]
+
+# --- Cap. 7: matricea Spearman ---
+pd.set_option("display.width", 250)  # ca matricea 13×13 să încapă pe un rând
+spearman = date[COLOANE_NUMERICE].corr("spearman")
+print(spearman.round(2).to_string())
+
+# Pe fiecare clasă: câte perechi de coloane sunt practic identice (ρ ≥ 0,995).
+# Coloanele constante în clasă sunt scoase, altfel corelația lor e NaN.
+for clasa, grup in date.groupby("target"):
+    coloane_variabile = [c for c in COLOANE_NUMERICE if grup[c].nunique() > 1]
+    matrice = grup[coloane_variabile].corr("spearman").values
+    deasupra_diagonalei = np.triu_indices(len(coloane_variabile), 1)
+    print(clasa,
+          "pairs", len(deasupra_diagonalei[0]),
+          "r>=0.995", (matrice[deasupra_diagonalei] >= 0.995).sum())
+
+print("pearson qos-mqtt.len", date["mqtt.qos"].corr(date["mqtt.len"]))
+
+# --- Cap. 8: verificări pe flood și pe valorile mari ---
+# 1460 = payload-ul TCP maxim într-un cadru Ethernet (MSS tipic).
+flood = date[date.target == "flood"]
+print("flood mqtt.len when tcp.len>1460", flood[flood["tcp.len"] > 1460]["mqtt.len"].describe().to_dict())
+print("flood ACK empty", ((flood["tcp.flags"] == "0x00000010") & (flood["tcp.len"] == 0)).sum(),
+      "tcp.len>1460 all", (date["tcp.len"] > 1460).sum(),
+      date[date["tcp.len"] > 1460].target.unique())
+print("legit tcp.len max", date[date.target == "legitimate"]["tcp.len"].max(),
+      "time_delta max", date["tcp.time_delta"].max(),
+      (date["tcp.time_delta"] > 50).sum())
+
+# --- Regresia 1: mqtt.len ~ tcp.len (simplă și pe log(1 + x)) ---
+regresia1 = sm.OLS(date["mqtt.len"], sm.add_constant(date[["tcp.len"]])).fit()
+print("R1", regresia1.params.round(4).to_dict(), round(regresia1.rsquared, 4),
+      "ssr", regresia1.ssr,
+      "res skew/kurt", round(stats.skew(regresia1.resid), 2), round(stats.kurtosis(regresia1.resid), 1))
+
+date_log = np.log1p(date[["tcp.len", "mqtt.len"]])  # log1p pentru că există multe valori 0
+regresia1_log = sm.OLS(date_log["mqtt.len"], sm.add_constant(date_log["tcp.len"])).fit()
+print("R1log", regresia1_log.params.round(3).to_dict(), round(regresia1_log.rsquared, 3),
+      round(stats.skew(regresia1_log.resid), 2), round(stats.kurtosis(regresia1_log.resid), 1))
+
+# --- Regresia 2: tcp.time_delta ~ tcp.len + mqtt.len ---
+regresia2 = sm.OLS(date["tcp.time_delta"], sm.add_constant(date[["tcp.len", "mqtt.len"]])).fit()
+print("R2", regresia2.params.to_dict(), regresia2.pvalues.to_dict(), regresia2.rsquared,
+      stats.skew(regresia2.resid), stats.kurtosis(regresia2.resid))
+
+# --- Regresia 3: regresia 1 pe fiecare clasă (simplă și logaritmică) ---
+for clasa, grup in date.groupby("target"):
+    simpla = sm.OLS(grup["mqtt.len"], sm.add_constant(grup["tcp.len"])).fit()
+    grup_log = np.log1p(grup[["tcp.len", "mqtt.len"]])
+    logaritmica = sm.OLS(grup_log["mqtt.len"], sm.add_constant(grup_log["tcp.len"])).fit()
+    print("R3", clasa, len(grup), simpla.params.round(4).tolist(),
+          round(simpla.rsquared, 3), round(logaritmica.rsquared, 3))
+
+# --- VIF (multicoliniaritate); indicele 0 e constanta, deci pornim de la 1 ---
+X5 = sm.add_constant(date[PREDICTORI_5]).values
+print("VIF5", [round(vif(X5, i), 2) for i in range(1, 6)])
+X3 = sm.add_constant(date[PREDICTORI_3]).values
+print("VIF3", [round(vif(X3, i), 2) for i in range(1, 4)])
+
+# --- Cap. 9: regresia logistică is_attack ~ 3 predictori (modelul final) ---
+logistica3 = sm.GLM(date.is_attack, sm.add_constant(date[PREDICTORI_3]),
+                    family=sm.families.Binomial()).fit()
+print("LOG6", logistica3.params.round(4).to_dict(), logistica3.bse.round(4).to_dict(),
+      logistica3.tvalues.round(2).to_dict(),
+      logistica3.null_deviance, logistica3.deviance, logistica3.aic,
+      "iters", logistica3.fit_history["iteration"])
+
+# Modelul cu 5 predictori are separare completă: coeficienții și erorile standard cresc
+# la fiecare pas. tol=1e-30 împiedică oprirea timpurie, ca să vedem pașii 10-30.
+for nr_pasi in [10, 15, 20, 25, 30]:
+    logistica5 = sm.GLM(date.is_attack, sm.add_constant(date[PREDICTORI_5]),
+                        family=sm.families.Binomial()).fit(maxiter=nr_pasi, tol=1e-30)
+    print("LOG5 it", nr_pasi, logistica5.params.round(3).to_dict(), logistica5.bse.round(1).to_dict(),
+          round(logistica5.deviance, 1))
+
+# Probabilitățile prezise de modelul final, pe clase.
+# „~0.42” = ponderea rândurilor cu probabilitatea ≈ 0,4235 (valoarea discutată în 9.6).
+probabilitati = pd.Series(logistica3.predict(), index=date.index)
+for clasa in date.target.unique():
+    p = probabilitati[date.target == clasa]
+    print("prob", clasa,
+          "max", round(p.max(), 3),
+          "med", round(p.median(), 3),
+          ">0.9", round((p > 0.9).mean(), 3),
+          "~0.42", round((np.abs(p - 0.4235) < 0.005).mean(), 3))
+
+# --- Tabelul 9.2: mediana și quartilele pentru atacuri ---
+atacuri = date[date.is_attack == 1]
+for coloana in ["tcp.time_delta", "tcp.len", "mqtt.len"]:
+    print("9.2", coloana, atacuri[coloana].median(), atacuri[coloana].quantile([.25, .75]).tolist())
+
+print("msgtype by class", pd.crosstab(date["mqtt.msgtype"], date.target).to_string())

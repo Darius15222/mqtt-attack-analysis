@@ -85,6 +85,11 @@ const date: Capitol = {
    "fel": "decizie",
    "eticheta": "Decizie",
    "text": "versiunea redusă, pentru că încape în memorie și este echilibrată: jumătate trafic normal, jumătate atacuri (165.463 fiecare). Analiza se face pe toate cele 6 clase, nu doar normal față de atac, pentru că atacurile diferă mult între ele."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Datele folosite",
+   "text": "fișierul redus, așa cum este descărcat, fără rânduri scoase sau valori modificate. Pregătirile se fac doar în cod: ținta is_attack unește cele 5 atacuri (capitolele 9 și 10), coloanele hex (tcp.flags, mqtt.conack.flags, mqtt.conflags, mqtt.hdrflags) se citesc ca text la arbori (capitolul 10), iar la regulile de asociere variabilele numerice se împart în intervale (capitolul 11)."
   }
  ]
 }

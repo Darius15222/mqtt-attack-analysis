@@ -1,92 +1,216 @@
-# docx -> src/data/capNN.ts (blocuri tipate) + public/img/*.png
-# Rulare: python3 scripts/genereaza.py ../../Facultate/ai-ml/MQTTset_tema.docx
-import sys, json, re, zipfile, xml.etree.ElementTree as ET
+"""
+Transformă documentul temei (MQTTset_tema.docx) în datele site-ului.
+
+Ieșire:
+  - src/data/intro.ts     blocurile de dinaintea primului capitol (rezumat, obiectiv, ipoteze, linkuri)
+  - src/data/capNN.ts     câte un fișier pe capitol, cu lista de blocuri (vezi tipurile din src/data/tipuri.ts)
+  - public/img/*.png      imaginile din document, cu numele din docx (ex. arbore_clasificare.png)
+
+Rulare (din folderul site-ului):
+  python3 scripts/genereaza.py ../../Facultate/ai-ml/MQTTset_tema.docx
+
+Atenție: suprascrie fișierele de mai sus. Modificările făcute de mână în capNN.ts se pierd.
+
+Cum se recunoaște fiecare bloc în docx:
+  - stilul Heading1                          → începe un capitol nou
+  - paragraf îngroșat de forma „10.3 ...”     → secțiune (subcapitol)
+  - paragraf care începe cu „Eticheta: ” bold → casetă de pas (Intrare / Calcul / Ieșire / Decizie)
+                                                sau text cu etichetă („Ce arată: ...”)
+  - paragraf scris cu Courier New            → fragment de cod
+  - stilul ListParagraph                     → listă (numerotarea 7 = bibliografia, restul liste cu puncte)
+  - tabel cu imagini                         → galerie; orice alt tabel → tabel
+"""
+import json
+import re
+import sys
+import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 
+# Spațiile de nume din XML-ul Word
 W = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
 R = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}'
-PAS = {'Intrare': 'intrare', 'Calcul': 'calcul', 'Ieșire': 'iesire', 'Decizie': 'decizie', 'Decizii': 'decizie'}
-root = Path(__file__).resolve().parent.parent
-z = zipfile.ZipFile(sys.argv[1])
-body = ET.fromstring(z.read('word/document.xml')).find(W + 'body')
-rels = {r.get('Id'): r.get('Target') for r in ET.fromstring(z.read('word/_rels/document.xml.rels'))}
-(root / 'public/img').mkdir(parents=True, exist_ok=True)
-(root / 'src/data').mkdir(parents=True, exist_ok=True)
 
-def runs(p):  # (text, bold, cod) pentru fiecare run, inclusiv cele din hyperlink-uri
-    for r in p.iter(W + 'r'):
-        t = ''.join(x.text or '' for x in r.iter() if x.tag in (W + 't', W + 'tab'))
-        rp = r.find(W + 'rPr')
-        b = rp is not None and rp.find(W + 'b') is not None
-        f = rp.find(W + 'rFonts') if rp is not None else None
-        yield t, b, f is not None and 'Courier' in (f.get(W + 'ascii') or '')
+# Eticheta din document → tipul casetei de pas de pe site
+ETICHETE_PAS = {'Intrare': 'intrare', 'Calcul': 'calcul', 'Ieșire': 'iesire', 'Decizie': 'decizie', 'Decizii': 'decizie'}
 
-def text(p): return ''.join(t for t, _, _ in runs(p))
+# În docx, listele numerotate (bibliografia, articolele) folosesc numerotarea cu id-ul 7.
+ID_LISTA_NUMEROTATA = '7'
 
-def imagini(p):
-    out = []
-    for d in p.iter(W + 'drawing'):
-        nume = next((e.get('name') for e in d.iter() if e.tag.endswith('docPr')), '')
-        emb = next(e.get(R + 'embed') for e in d.iter() if e.get(R + 'embed'))
-        src = rels[emb].split('/')[-1]
-        nume = nume if nume.endswith('.png') else src
-        (root / 'public/img' / nume).write_bytes(z.read('word/' + rels[emb]))
-        out.append({'tip': 'imagine', 'src': nume})
-    return out
+FOLDER_SITE = Path(__file__).resolve().parent.parent
+FOLDER_IMAGINI = FOLDER_SITE / 'public/img'
+FOLDER_DATE = FOLDER_SITE / 'src/data'
 
-def stil(p):
-    s = p.find(f'{W}pPr/{W}pStyle'); return s.get(W + 'val') if s is not None else 'Normal'
 
-intro, capitole, cur, nr_ref = [], [], None, 0
-def add(b):
-    (cur['blocuri'] if cur else intro).append(b)
+# --- citirea documentului ---
 
-for el in body:
-    if el.tag == W + 'tbl' and list(el.iter(W + 'drawing')):  # tabel de imagini = galerie
-        el_ = [dict(im, legenda=text(c).strip()) for c in el.iter(W + 'tc') for im in imagini(c)]
-        add({'tip': 'galerie', 'imagini': el_}); continue
-    if el.tag == W + 'tbl':
-        rows = [[ '\n'.join(text(p) for p in c.iter(W + 'p')).strip() for c in tr.findall(W + 'tc')] for tr in el.findall(W + 'tr')]
-        add({'tip': 'tabel', 'antet': rows[0], 'randuri': rows[1:]}); continue
-    if el.tag != W + 'p': continue
-    st, t, rr = stil(el), text(el).strip(), list(runs(el))
-    for im in imagini(el): add(im)
-    if st == 'Title' or not t: continue
-    if st == 'Heading1':
-        cur = {'titlu': t, 'blocuri': []}; capitole.append(cur); continue
-    if cur is None and re.match(r'^\d+\. ', t) and not rr[0][1]: continue  # cuprinsul
-    if t == 'Cuprins': continue
-    if all(c for x, _, c in rr if x.strip()):  # cod (Courier New): se lipesc liniile consecutive
-        bl = (cur['blocuri'] if cur else intro)
-        if bl and bl[-1]['tip'] == 'cod': bl[-1]['text'] += '\n' + text(el)
-        else: add({'tip': 'cod', 'text': text(el)})
+docx = zipfile.ZipFile(sys.argv[1])
+corp_document = ET.fromstring(docx.read('word/document.xml')).find(W + 'body')
+# rId → calea fișierului din arhivă (pentru imagini)
+legaturi = {rel.get('Id'): rel.get('Target') for rel in ET.fromstring(docx.read('word/_rels/document.xml.rels'))}
+
+FOLDER_IMAGINI.mkdir(parents=True, exist_ok=True)
+FOLDER_DATE.mkdir(parents=True, exist_ok=True)
+
+
+def bucati_text(paragraf):
+    """Pentru fiecare bucată de text (run) din paragraf: (text, e_ingrosat, e_cod).
+    Include și bucățile din interiorul linkurilor."""
+    for run in paragraf.iter(W + 'r'):
+        text = ''.join(nod.text or '' for nod in run.iter() if nod.tag in (W + 't', W + 'tab'))
+        format_run = run.find(W + 'rPr')
+        ingrosat = format_run is not None and format_run.find(W + 'b') is not None
+        font = format_run.find(W + 'rFonts') if format_run is not None else None
+        e_cod = font is not None and 'Courier' in (font.get(W + 'ascii') or '')
+        yield text, ingrosat, e_cod
+
+
+def text_paragraf(paragraf):
+    return ''.join(text for text, _, _ in bucati_text(paragraf))
+
+
+def stil_paragraf(paragraf):
+    stil = paragraf.find(f'{W}pPr/{W}pStyle')
+    return stil.get(W + 'val') if stil is not None else 'Normal'
+
+
+def extrage_imagini(element):
+    """Salvează imaginile din element în public/img/ și întoarce câte un bloc 'imagine' pentru fiecare."""
+    blocuri = []
+    for desen in element.iter(W + 'drawing'):
+        nume_in_docx = next((nod.get('name') for nod in desen.iter() if nod.tag.endswith('docPr')), '')
+        id_legatura = next(nod.get(R + 'embed') for nod in desen.iter() if nod.get(R + 'embed'))
+        cale_in_arhiva = legaturi[id_legatura]
+        # numele dat în docx (ex. „reg1_reziduuri.png”), altfel numele fișierului din arhivă (ex. „image41.png”)
+        nume = nume_in_docx if nume_in_docx.endswith('.png') else cale_in_arhiva.split('/')[-1]
+        (FOLDER_IMAGINI / nume).write_bytes(docx.read('word/' + cale_in_arhiva))
+        blocuri.append({'tip': 'imagine', 'src': nume})
+    return blocuri
+
+
+# --- parcurgerea documentului, în ordine ---
+
+intro = []  # blocurile de dinaintea primului capitol
+capitole = []  # fiecare: {'titlu': ..., 'blocuri': [...]}
+capitol_curent = None
+numar_referinta = 0  # numerotarea listelor numerotate continuă între capitole (articolele 1-5, apoi bibliografia 6-18)
+
+
+def blocuri_curente():
+    return capitol_curent['blocuri'] if capitol_curent else intro
+
+
+def adauga(bloc):
+    blocuri_curente().append(bloc)
+
+
+def ultimul_bloc():
+    blocuri = blocuri_curente()
+    return blocuri[-1] if blocuri else None
+
+
+for element in corp_document:
+    # tabel de imagini (graficele din cap. 5-7 sunt așezate câte două pe rând într-un tabel)
+    if element.tag == W + 'tbl' and list(element.iter(W + 'drawing')):
+        imagini = [dict(imagine, legenda=text_paragraf(celula).strip())
+                   for celula in element.iter(W + 'tc')
+                   for imagine in extrage_imagini(celula)]
+        adauga({'tip': 'galerie', 'imagini': imagini})
         continue
-    if st == 'ListParagraph':
-        num = el.find(f'{W}pPr/{W}numPr/{W}numId'); ord_ = num is not None and num.get(W + 'val') == '7'
-        bl = (cur['blocuri'] if cur else intro)
-        if ord_: nr_ref += 1
-        if bl and bl[-1]['tip'] == 'lista' and bl[-1]['ordonata'] == ord_: bl[-1]['elemente'].append(t)
-        else: add({'tip': 'lista', 'ordonata': ord_, 'start': nr_ref if ord_ else 1, 'elemente': [t]})
-        continue
-    bold = ''.join(x for x, b, _ in rr if b)
-    sp = el.find(f'{W}pPr/{W}spacing')
-    if bold.strip() == t and re.match(r'^\d+\.\d+ ', t):
-        add({'tip': 'sectiune', 'titlu': t}); continue
-    m = re.match(r'^([^:]{1,40}):\s*', t)
-    if m and rr[0][1] and bold.strip().rstrip(':') == m[1]:
-        lab, rest = m[1], t[m.end():]
-        if lab in PAS: add({'tip': 'pas', 'fel': PAS[lab], 'eticheta': lab, 'text': rest})
-        else: add({'tip': 'text', 'eticheta': lab, 'text': rest})
-        continue
-    if bold.strip() == t: add({'tip': 'subtitlu', 'text': t}); continue
-    add({'tip': 'text', 'text': t})
 
-def ts(nume, val, tip):
-    (root / 'src/data' / nume).write_text(f"import type {{ {tip.rstrip('[]')} }} from './tipuri'\n\nconst date: {tip} = {json.dumps(val, ensure_ascii=False, indent=1)}\n\nexport default date\n")
+    # tabel obișnuit: primul rând e antetul; o celulă cu mai multe paragrafe devine text pe mai multe rânduri
+    if element.tag == W + 'tbl':
+        randuri = [['\n'.join(text_paragraf(p) for p in celula.iter(W + 'p')).strip() for celula in rand.findall(W + 'tc')]
+                   for rand in element.findall(W + 'tr')]
+        adauga({'tip': 'tabel', 'antet': randuri[0], 'randuri': randuri[1:]})
+        continue
 
-ts('intro.ts', intro, 'Bloc[]')
-for i, c in enumerate(capitole, 1):
-    ts(f'cap{i:02d}.ts', c, 'Capitol')
-print(len(intro), 'blocuri intro;', len(capitole), 'capitole;', sum(len(c['blocuri']) for c in capitole), 'blocuri;',
-      len(list((root / 'public/img').glob('*.png'))), 'imagini')
-for c in capitole: print(c['titlu'], len(c['blocuri']), {k: sum(b['tip'] == k for b in c['blocuri']) for k in ['pas', 'tabel', 'imagine', 'galerie', 'cod', 'sectiune']})
+    if element.tag != W + 'p':
+        continue
+
+    stil = stil_paragraf(element)
+    text = text_paragraf(element).strip()
+    bucati = list(bucati_text(element))
+
+    for imagine in extrage_imagini(element):
+        adauga(imagine)
+    if stil == 'Title' or not text:
+        continue
+
+    if stil == 'Heading1':
+        capitol_curent = {'titlu': text, 'blocuri': []}
+        capitole.append(capitol_curent)
+        continue
+
+    # cuprinsul de la început („1. Dataset: MQTTset”, ...) nu intră pe site: meniul ține locul lui
+    if capitol_curent is None and re.match(r'^\d+\. ', text) and not bucati[0][1]:
+        continue
+    if text == 'Cuprins':
+        continue
+
+    # cod (Courier New): liniile consecutive se lipesc într-un singur bloc
+    if all(e_cod for bucata, _, e_cod in bucati if bucata.strip()):
+        anterior = ultimul_bloc()
+        if anterior and anterior['tip'] == 'cod':
+            anterior['text'] += '\n' + text_paragraf(element)
+        else:
+            adauga({'tip': 'cod', 'text': text_paragraf(element)})
+        continue
+
+    # elementele de listă consecutive (de același fel) se adună într-o singură listă
+    if stil == 'ListParagraph':
+        numerotare = element.find(f'{W}pPr/{W}numPr/{W}numId')
+        numerotata = numerotare is not None and numerotare.get(W + 'val') == ID_LISTA_NUMEROTATA
+        if numerotata:
+            numar_referinta += 1
+        anterior = ultimul_bloc()
+        if anterior and anterior['tip'] == 'lista' and anterior['ordonata'] == numerotata:
+            anterior['elemente'].append(text)
+        else:
+            adauga({'tip': 'lista', 'ordonata': numerotata, 'start': numar_referinta if numerotata else 1, 'elemente': [text]})
+        continue
+
+    text_ingrosat = ''.join(bucata for bucata, ingrosat, _ in bucati if ingrosat).strip()
+
+    # titlu de secțiune: tot paragraful e îngroșat și începe cu „N.M ”
+    if text_ingrosat == text and re.match(r'^\d+\.\d+ ', text):
+        adauga({'tip': 'sectiune', 'titlu': text})
+        continue
+
+    # paragraf cu etichetă îngroșată la început: „Intrare: ...”, „Ce arată: ...”
+    eticheta = re.match(r'^([^:]{1,40}):\s*', text)
+    if eticheta and bucati[0][1] and text_ingrosat.rstrip(':') == eticheta[1]:
+        nume_eticheta, rest = eticheta[1], text[eticheta.end():]
+        if nume_eticheta in ETICHETE_PAS:
+            adauga({'tip': 'pas', 'fel': ETICHETE_PAS[nume_eticheta], 'eticheta': nume_eticheta, 'text': rest})
+        else:
+            adauga({'tip': 'text', 'eticheta': nume_eticheta, 'text': rest})
+        continue
+
+    if text_ingrosat == text:
+        adauga({'tip': 'subtitlu', 'text': text})
+        continue
+
+    adauga({'tip': 'text', 'text': text})
+
+
+# --- scrierea fișierelor TypeScript ---
+
+def scrie_ts(nume_fisier, valoare, tip):
+    tip_importat = tip.rstrip('[]')  # „Bloc[]” → se importă „Bloc”
+    continut = json.dumps(valoare, ensure_ascii=False, indent=1)
+    (FOLDER_DATE / nume_fisier).write_text(
+        f"import type {{ {tip_importat} }} from './tipuri'\n\nconst date: {tip} = {continut}\n\nexport default date\n")
+
+
+scrie_ts('intro.ts', intro, 'Bloc[]')
+for numar, capitol in enumerate(capitole, 1):
+    scrie_ts(f'cap{numar:02d}.ts', capitol, 'Capitol')
+
+# rezumat, ca să se vadă dacă s-a recunoscut tot
+total_blocuri = sum(len(capitol['blocuri']) for capitol in capitole)
+total_imagini = len(list(FOLDER_IMAGINI.glob('*.png')))
+print(len(intro), 'blocuri intro;', len(capitole), 'capitole;', total_blocuri, 'blocuri;', total_imagini, 'imagini')
+for capitol in capitole:
+    numarate = {tip: sum(bloc['tip'] == tip for bloc in capitol['blocuri']) for tip in ['pas', 'tabel', 'imagine', 'galerie', 'cod', 'sectiune']}
+    print(capitol['titlu'], len(capitol['blocuri']), numarate)

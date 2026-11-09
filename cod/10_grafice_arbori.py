@@ -1,93 +1,199 @@
-# Graficele din cap. 10, din CSV-urile scrise de 09_cap10_arbori_ctree.R.
-# Rulare: python 10_grafice_arbori.py folder_csv folder_iesire
-import sys, re, textwrap, numpy as np, pandas as pd, matplotlib
-matplotlib.use("Agg"); import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, Patch
+"""
+Graficele din cap. 10 (arborii de decizie), desenate din CSV-urile scrise de
+09_cap10_arbori_ctree.R.
+
+Intrări (în folderul dat ca prim argument):
+  noduri_clasificare.csv, noduri_regresie.csv  - tabelul nodurilor celor doi arbori
+  adancime_clasificare.csv, adancime_regresie.csv  - metricile pe maxdepth 2-6 (10.3)
+
+Ieșiri (în folderul dat ca al doilea argument):
+  arbore_clasificare.png  - arborele is_attack; în fiecare frunză, bara cu clasele pachetelor
+  arbore_regresie.png     - arborele tcp.len; în fiecare frunză, boxplot pe scară log
+  adancime.png            - F1 / R² pe construcție și test, în funcție de maxdepth
+
+Rulare:
+  python 10_grafice_arbori.py folder_csv folder_iesire
+"""
+import re
+import sys
+import textwrap
+
+import matplotlib
+import numpy as np
+import pandas as pd
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch, Rectangle
 
-src, out = sys.argv[1], sys.argv[2]
-CL = {"legitimate": "#2a7ad6", "dos": "#e8692f", "bruteforce": "#1aae80", "malformed": "#f0a30a", "slowite": "#e377a6", "flood": "#008000"}
-ro = lambda v, dec: f"{v:,.{dec}f}".replace(",", " ").replace(".", ",").replace(" ", ".")
-g = lambda v: ("%g" % v).replace(".", ",")
+folder_csv = sys.argv[1]
+folder_iesire = sys.argv[2]
 
-def ramura(s):  # "<= 1e-06" -> "≤ 1e-06"; "0x00000018" -> "0x18"; lista -> "∈ {...}"
-    s = re.sub(r"0x0+([0-9a-f]{2})", r"0x\1", s)
-    m = re.match(r"(<=|>) (.+)", s)
-    if m: return ("≤ " if m[1] == "<=" else "> ") + g(float(m[2]))
-    v = s.split(", ")
-    return "= " + v[0] if len(v) == 1 else textwrap.fill("∈ {" + ", ".join(v) + "}", 16)
+CULORI_CLASE = {"legitimate": "#2a7ad6", "dos": "#e8692f", "bruteforce": "#1aae80",
+                "malformed": "#f0a30a", "slowite": "#e377a6", "flood": "#008000"}
 
-def arbore(csv, titlu, fisier, frunza, legenda):
-    t = pd.read_csv(csv, keep_default_na=False).set_index("id")
-    kids = {i: [int(k) for k in str(r.copii).split(";")] if r.copii else [] for i, r in t.iterrows()}
+
+def format_zecimale(valoare, zecimale):
+    """Format românesc: 12345.6 -> „12.345,6”."""
+    text = f"{valoare:,.{zecimale}f}"
+    return text.replace(",", " ").replace(".", ",").replace(" ", ".")
+
+
+def format_scurt(valoare):
+    return ("%g" % valoare).replace(".", ",")
+
+
+def eticheta_ramura(text):
+    """Eticheta unei ramuri din R: „<= 1e-06” -> „≤ 1e-06”; „0x00000018” -> „0x18”; listă -> „∈ {...}”."""
+    text = re.sub(r"0x0+([0-9a-f]{2})", r"0x\1", text)
+    prag = re.match(r"(<=|>) (.+)", text)
+    if prag:
+        semn = "≤ " if prag[1] == "<=" else "> "
+        return semn + format_scurt(float(prag[2]))
+    valori = text.split(", ")
+    if len(valori) == 1:
+        return "= " + valori[0]
+    return textwrap.fill("∈ {" + ", ".join(valori) + "}", 16)
+
+
+# ---------------------------------------------------------------------------
+# Desenul unui arbore: nodurile interne sus, toate frunzele pe ultimul rând
+# ---------------------------------------------------------------------------
+
+def deseneaza_arbore(fisier_csv, titlu, fisier_png, deseneaza_frunza, legenda):
+    noduri = pd.read_csv(fisier_csv, keep_default_na=False).set_index("id")
+    copii = {i: [int(k) for k in str(nod.copii).split(";")] if nod.copii else [] for i, nod in noduri.iterrows()}
+
+    # poziții: frunzele la x = 0, 1, 2, ... în ordinea parcurgerii,
+    # fiecare nod intern deasupra mijlocului copiilor lui; y = -adâncimea
     x, y, frunze = {}, {}, []
-    def pozitie(i, dep):
-        y[i] = -dep
-        if not kids[i]: x[i] = len(frunze); frunze.append(i)
+
+    def pozitioneaza(nod, adancime):
+        y[nod] = -adancime
+        if not copii[nod]:
+            x[nod] = len(frunze)
+            frunze.append(nod)
         else:
-            for k in kids[i]: pozitie(k, dep + 1)
-            x[i] = np.mean([x[k] for k in kids[i]])
-    pozitie(1, 0)
-    jos = min(y.values()) - 0.6
+            for copil in copii[nod]:
+                pozitioneaza(copil, adancime + 1)
+            x[nod] = np.mean([x[copil] for copil in copii[nod]])
+
+    pozitioneaza(1, 0)
+    y_frunze = min(y.values()) - 0.6
+
     fig, ax = plt.subplots(figsize=(17, 12))
-    for i in t.index:  # liniile și etichetele ramurilor
-        if not kids[i]: continue
-        r = t.loc[i]
-        for k, lab in zip(kids[i], r.ramuri.split("|")):
-            yk = jos if not kids[k] else y[k]
-            ye = yk + (0.45 if not kids[k] else 0)
-            ax.plot([x[i], x[k]], [y[i], ye], color="#999", lw=1, zorder=1)
-            f = 0.8 if not kids[k] else 0.55  # eticheta mai aproape de copil, ca să nu se suprapună cu a fratelui
-            ax.text(x[i] + f * (x[k] - x[i]), y[i] + f * (ye - y[i]), ramura(lab), ha="center", va="center", fontsize=9,
-                    bbox=dict(fc="white", ec="none", pad=0.5), zorder=2)
-        p = float(r.p)
-        ax.text(x[i], y[i], f"{i}  {r['var']}\n" + ("p < 0,001" if p < 0.001 else "p = " + ro(p, 3)), ha="center", va="center",
+    for nod in noduri.index:  # liniile și etichetele ramurilor, apoi caseta nodului
+        if not copii[nod]:
+            continue
+        rand = noduri.loc[nod]
+        for copil, eticheta in zip(copii[nod], rand.ramuri.split("|")):
+            este_frunza = not copii[copil]
+            y_copil = y_frunze if este_frunza else y[copil]
+            y_capat = y_copil + (0.45 if este_frunza else 0)
+            ax.plot([x[nod], x[copil]], [y[nod], y_capat], color="#999", lw=1, zorder=1)
+            # eticheta mai aproape de copil, ca să nu se suprapună cu a fratelui
+            f = 0.8 if este_frunza else 0.55
+            ax.text(x[nod] + f * (x[copil] - x[nod]), y[nod] + f * (y_capat - y[nod]), eticheta_ramura(eticheta),
+                    ha="center", va="center", fontsize=9, bbox=dict(fc="white", ec="none", pad=0.5), zorder=2)
+        p = float(rand.p)
+        text_p = "p < 0,001" if p < 0.001 else "p = " + format_zecimale(p, 3)
+        ax.text(x[nod], y[nod], f"{nod}  {rand['var']}\n" + text_p, ha="center", va="center",
                 fontsize=10, bbox=dict(boxstyle="round", fc="#eef3fb", ec="#7f9fd4"), zorder=3)
-    for i in frunze:
-        ax.text(x[i], jos + 0.2, str(i), ha="center", fontsize=10)
-        frunza(ax, x[i], jos, t.loc[i])
-    ax.set_xlim(-0.8, len(frunze) - 0.2); ax.set_ylim(jos - 2.4, 0.5); ax.axis("off")
+
+    for nod in frunze:
+        ax.text(x[nod], y_frunze + 0.2, str(nod), ha="center", fontsize=10)
+        deseneaza_frunza(ax, x[nod], y_frunze, noduri.loc[nod])
+
+    ax.set_xlim(-0.8, len(frunze) - 0.2)
+    ax.set_ylim(y_frunze - 2.4, 0.5)
+    ax.axis("off")
     ax.set_title(titlu, fontsize=13)
-    ax.legend(handles=legenda, loc="lower center", ncol=len(legenda), frameon=False, bbox_to_anchor=(0.5, -0.02), fontsize=10)
-    fig.tight_layout(); fig.savefig(f"{out}/{fisier}", dpi=100); plt.close(fig)
+    ax.legend(handles=legenda, loc="lower center", ncol=len(legenda), frameon=False,
+              bbox_to_anchor=(0.5, -0.02), fontsize=10)
+    fig.tight_layout()
+    fig.savefig(f"{folder_iesire}/{fisier_png}", dpi=100)
+    plt.close(fig)
 
-def bara(ax, xi, jos, r):  # bara din frunză: din ce clase sunt pachetele
-    b = jos - 1.75
-    for c, col in CL.items():
-        h = 1.6 * r[c] / r.n
-        ax.add_patch(Rectangle((xi - 0.25, b), 0.5, h, fc=col, ec="white", lw=0.8)); b += h
-    atac = 1 - r.legitimate / r.n
-    ax.text(xi, jos - 2.0, f"n = {ro(r.n, 0)}\natac {ro(100 * atac, 1)}%", ha="center", va="top", fontsize=9)
 
-H = lambda v: 1.6 * np.log10(1 + v) / np.log10(1 + 32768)  # scară logaritmică, până la maximul tcp.len
-def cutie(ax, xi, jos, r):  # boxplot tcp.len: Q1-Q3, mediana, media (valoarea prezisă)
-    b = jos - 1.75
-    ax.plot([xi, xi], [b + H(r["0%"]), b + H(r["100%"])], color="#444", lw=1)
-    ax.add_patch(Rectangle((xi - 0.2, b + H(r["25%"])), 0.4, max(H(r["75%"]) - H(r["25%"]), 0.004), fc="#cfe2fb", ec="#2a7ad6"))
-    ax.plot([xi - 0.2, xi + 0.2], [b + H(r["50%"])] * 2, color="#123f80", lw=2.5)
-    ax.plot(xi, b + H(r.media), "D", color="#e8692f", ms=6)
-    ax.text(xi, jos - 2.0, f"n = {ro(r.n, 0)}\nmedia {ro(r.media, 1)}", ha="center", va="top", fontsize=9)
-    if xi == 0:
-        for v in [0, 10, 100, 1000, 10000]:
-            ax.text(-0.55, b + H(v), ro(v, 0), ha="right", va="center", fontsize=8, color="#666")
-            ax.plot([-0.52, -0.47], [b + H(v)] * 2, color="#666", lw=1)
-        ax.plot([-0.5, -0.5], [b, b + 1.6], color="#666", lw=1); ax.text(-0.5, b + 1.7, "tcp.len", ha="center", fontsize=8, color="#666")
+def frunza_clasificare(ax, x, y_frunze, nod):
+    """Bara stivuită din frunză: din ce clase sunt pachetele."""
+    baza = y_frunze - 1.75
+    for clasa, culoare in CULORI_CLASE.items():
+        inaltime = 1.6 * nod[clasa] / nod.n
+        ax.add_patch(Rectangle((x - 0.25, baza), 0.5, inaltime, fc=culoare, ec="white", lw=0.8))
+        baza += inaltime
+    procent_atac = 100 * (1 - nod.legitimate / nod.n)
+    ax.text(x, y_frunze - 2.0, f"n = {format_zecimale(nod.n, 0)}\natac {format_zecimale(procent_atac, 1)}%",
+            ha="center", va="top", fontsize=9)
 
-arbore(f"{src}/noduri_clasificare.csv", "Arborele de clasificare (is_attack), maxdepth = 5", "arbore_clasificare.png", bara,
-       [Patch(fc=c, label=k) for k, c in CL.items()])
-arbore(f"{src}/noduri_regresie.csv", "Arborele de regresie (tcp.len), maxdepth = 4", "arbore_regresie.png", cutie,
-       [Patch(fc="#cfe2fb", ec="#2a7ad6", label="Q1 până la Q3"), Line2D([], [], color="#123f80", lw=2.5, label="mediana"),
-        Line2D([], [], marker="D", color="#e8692f", ls="", label="media (valoarea prezisă)")])
 
-# alegerea adâncimii (10.3)
-c = pd.read_csv(f"{src}/adancime_clasificare.csv"); r = pd.read_csv(f"{src}/adancime_regresie.csv")
+def inaltime_log(valoare):
+    """Scară logaritmică pentru tcp.len, de la 0 la 32768 (maximul tcp.len) pe 1,6 unități."""
+    return 1.6 * np.log10(1 + valoare) / np.log10(1 + 32768)
+
+
+def frunza_regresie(ax, x, y_frunze, nod):
+    """Boxplot tcp.len în frunză: minim-maxim, Q1-Q3, mediana, media (valoarea prezisă)."""
+    baza = y_frunze - 1.75
+    ax.plot([x, x], [baza + inaltime_log(nod["0%"]), baza + inaltime_log(nod["100%"])], color="#444", lw=1)
+    # înălțime minimă, ca o cutie cu Q1 = Q3 să rămână vizibilă
+    inaltime_cutie = max(inaltime_log(nod["75%"]) - inaltime_log(nod["25%"]), 0.004)
+    ax.add_patch(Rectangle((x - 0.2, baza + inaltime_log(nod["25%"])), 0.4, inaltime_cutie, fc="#cfe2fb", ec="#2a7ad6"))
+    ax.plot([x - 0.2, x + 0.2], [baza + inaltime_log(nod["50%"])] * 2, color="#123f80", lw=2.5)
+    ax.plot(x, baza + inaltime_log(nod.media), "D", color="#e8692f", ms=6)
+    ax.text(x, y_frunze - 2.0, f"n = {format_zecimale(nod.n, 0)}\nmedia {format_zecimale(nod.media, 1)}",
+            ha="center", va="top", fontsize=9)
+    if x == 0:  # axa tcp.len, o singură dată, lângă prima frunză
+        for valoare in [0, 10, 100, 1000, 10000]:
+            ax.text(-0.55, baza + inaltime_log(valoare), format_zecimale(valoare, 0), ha="right", va="center",
+                    fontsize=8, color="#666")
+            ax.plot([-0.52, -0.47], [baza + inaltime_log(valoare)] * 2, color="#666", lw=1)
+        ax.plot([-0.5, -0.5], [baza, baza + 1.6], color="#666", lw=1)
+        ax.text(-0.5, baza + 1.7, "tcp.len", ha="center", fontsize=8, color="#666")
+
+
+# ---------------------------------------------------------------------------
+# 10.4 și 10.6: cei doi arbori
+# ---------------------------------------------------------------------------
+
+deseneaza_arbore(f"{folder_csv}/noduri_clasificare.csv", "Arborele de clasificare (is_attack), maxdepth = 5",
+                 "arbore_clasificare.png", frunza_clasificare,
+                 [Patch(fc=culoare, label=clasa) for clasa, culoare in CULORI_CLASE.items()])
+deseneaza_arbore(f"{folder_csv}/noduri_regresie.csv", "Arborele de regresie (tcp.len), maxdepth = 4",
+                 "arbore_regresie.png", frunza_regresie,
+                 [Patch(fc="#cfe2fb", ec="#2a7ad6", label="Q1 până la Q3"),
+                  Line2D([], [], color="#123f80", lw=2.5, label="mediana"),
+                  Line2D([], [], marker="D", color="#e8692f", ls="", label="media (valoarea prezisă)")])
+
+
+# ---------------------------------------------------------------------------
+# 10.3: alegerea adâncimii maxime
+# ---------------------------------------------------------------------------
+
+clasificare = pd.read_csv(f"{folder_csv}/adancime_clasificare.csv")
+regresie = pd.read_csv(f"{folder_csv}/adancime_regresie.csv")
+adancimi = clasificare.maxdepth
+# (construcție, test, titlu, adâncimea aleasă); în CSV, f1.1 este F1 pe test
+panouri = [(clasificare.f1, clasificare["f1.1"], "Arborele de clasificare: F1", 5),
+           (regresie.R2_constr, regresie.R2, "Arborele de regresie: R²", 4)]
+
 fig, axs = plt.subplots(1, 2, figsize=(15.3, 5.78))
-for ax, (tr, te, nume, ales) in zip(axs, [(c.f1, c["f1.1"], "Arborele de clasificare: F1", 5), (r.R2_constr, r.R2, "Arborele de regresie: R²", 4)]):
-    ax.plot(c.maxdepth, tr, "o-", color="#2a7ad6", lw=2.5, ms=8, label="construcție (70%)")
-    ax.plot(c.maxdepth, te, "o--", color="#e8692f", lw=2.5, ms=8, label="test (30%)")
-    for md, v in zip(c.maxdepth, te): ax.annotate(ro(v, 3), (md, v), textcoords="offset points", xytext=(0, -16), ha="center", fontsize=9)
-    ax.axvline(ales, color="gray", ls=":"); ax.text(ales + 0.08, ax.get_ylim()[0], f"ales: {ales}", color="gray", va="bottom")
-    ax.set_title(nume); ax.set_xlabel("maxdepth"); ax.set_xticks(c.maxdepth); ax.legend(frameon=False, loc="upper left")
-    ax.yaxis.set_major_formatter(lambda v, _: g(round(v, 3))); ax.grid(axis="y", alpha=0.3)
+for ax, (constructie, test, titlu, aleasa) in zip(axs, panouri):
+    ax.plot(adancimi, constructie, "o-", color="#2a7ad6", lw=2.5, ms=8, label="construcție (70%)")
+    ax.plot(adancimi, test, "o--", color="#e8692f", lw=2.5, ms=8, label="test (30%)")
+    for adancime, valoare in zip(adancimi, test):
+        ax.annotate(format_zecimale(valoare, 3), (adancime, valoare), textcoords="offset points", xytext=(0, -16),
+                    ha="center", fontsize=9)
+    ax.axvline(aleasa, color="gray", ls=":")
+    ax.text(aleasa + 0.08, ax.get_ylim()[0], f"ales: {aleasa}", color="gray", va="bottom")
+    ax.set_title(titlu)
+    ax.set_xlabel("maxdepth")
+    ax.set_xticks(adancimi)
+    ax.legend(frameon=False, loc="upper left")
+    ax.yaxis.set_major_formatter(lambda v, _: format_scurt(round(v, 3)))
+    ax.grid(axis="y", alpha=0.3)
     ax.spines[["top", "right"]].set_visible(False)
-fig.tight_layout(); fig.savefig(f"{out}/adancime.png", dpi=100); plt.close(fig)
+fig.tight_layout()
+fig.savefig(f"{folder_iesire}/adancime.png", dpi=100)
+plt.close(fig)

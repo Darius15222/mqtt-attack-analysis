@@ -18,6 +18,11 @@ const date: Bloc[] = [
   "tip": "text",
   "eticheta": "Ipoteze (H0)",
   "text": "cap. 6: fiecare variabilă are aceeași distribuție în toate cele 6 clase; cap. 7: corelația dintre două variabile este 0; cap. 8: panta regresiei este 0; cap. 9: coeficientul fiecărui predictor este 0; cap. 10: la fiecare nod, fiecare predictor este independent de țintă. La regulile de asociere (cap. 11) nu se testează o ipoteză: se păstrează regulile cu support și confidence peste prag."
+ },
+ {
+  "tip": "text",
+  "eticheta": "Cod și site",
+  "text": "toate cifrele și graficele se reproduc cu cele 10 scripturi (Python și R) din https://github.com/Darius15222/mqtt-attack-analysis (folderul cod/); versiunea PDF a codului este fișierul MQTTset_cod.pdf. Analiza, cu graficele interactive: https://darius15222.github.io/mqtt-attack-analysis/."
  }
 ]
 

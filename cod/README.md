@@ -12,6 +12,8 @@ venv/bin/python 01_cap1-7_statistici_corelatii.py ../mqttdataset_reduced.csv.zip
 
 pandas citește direct fișierul `.zip`, nu trebuie dezarhivat.
 
+La scripturile cu reguli de asociere (06 și graficul din 11.4 din 08), ordinea în care se afișează itemii unei reguli depinde de `PYTHONHASHSEED`; cifrele sunt aceleași. Pentru o ieșire identică la fiecare rulare: `PYTHONHASHSEED=0 venv/bin/python 06_cap11_reguli_asociere.py ...`.
+
 | Script | Ce reproduce | Argumente |
 |---|---|---|
 | `01_cap1-7_statistici_corelatii.py` | clase, constante, statistici descriptive, tabelul pe clase, χ² tcp.flags, Kruskal-Wallis, Mann-Whitney, Spearman/Pearson, exemplele din cap. 4 | CSV |

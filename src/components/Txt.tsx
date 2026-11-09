@@ -1,22 +1,56 @@
-import { Fragment } from 'react'
+// Afișează un text din document și transformă în linkuri:
+//   - adresele web (https://...) → link extern;
+//   - trimiterile la capitole („capitolul 3”, „secțiunea 4”, „cap. 9”) → link spre pagina capitolului.
+// Trimiterile la subsecțiuni („10.3”) rămân text, pentru că nu au pagină proprie.
 import { Link } from 'react-router-dom'
 import { capitole } from '../data/capitole'
 
-// text simplu, cu linkuri: URL-uri externe și trimiteri „capitolul N” / „secțiunea N” / „cap. N” spre pagina capitolului
-const RE = /(https?:\/\/[^\s)]+)|((?:capitolul|capitolele|secțiunea|cap\.)\s+)(\d{1,2})(?![\d.,]\d)/g
+const ADRESA_WEB = String.raw`(https?:\/\/[^\s)]+)`
+const CUVANT_CAPITOL = String.raw`((?:capitolul|capitolele|secțiunea|cap\.)\s+)`
+const NUMAR_CAPITOL = String.raw`(\d{1,2})(?![\d.,]\d)` // „10”, dar nu „10.3” sau „10,5”
+const TRIMITERI = new RegExp(`${ADRESA_WEB}|${CUVANT_CAPITOL}${NUMAR_CAPITOL}`, 'g')
 
-export default function Txt({ t }: { t: string }) {
-  const out: React.ReactNode[] = []
-  let last = 0
-  for (const m of t.matchAll(RE)) {
-    out.push(t.slice(last, m.index))
-    if (m[1]) out.push(<a key={m.index} href={m[1]} target="_blank" rel="noreferrer" className="text-cyan underline decoration-cyan/30 underline-offset-2 break-all hover:decoration-cyan">{m[1]}</a>)
-    else {
-      const c = capitole.find((x) => x.nr === Number(m[3]))
-      out.push(m[2], c ? <Link key={m.index} to={`/capitol/${c.slug}`} className="text-cyan hover:underline">{m[3]}</Link> : m[3])
-    }
-    last = m.index! + m[0].length
+function LinkExtern({ adresa }: { adresa: string }) {
+  return (
+    <a href={adresa} target="_blank" rel="noreferrer" className="break-all text-cyan underline decoration-cyan/30 underline-offset-2 hover:decoration-cyan">
+      {adresa}
+    </a>
+  )
+}
+
+function LinkCapitol({ numar }: { numar: string }) {
+  const capitol = capitole.find((c) => c.nr === Number(numar))
+  if (!capitol) return <>{numar}</>
+  return <Link to={`/capitol/${capitol.slug}`} className="text-cyan hover:underline">{numar}</Link>
+}
+
+function RandCuLinkuri({ text }: { text: string }) {
+  const bucati: React.ReactNode[] = []
+  let pozitie = 0
+
+  for (const potrivire of text.matchAll(TRIMITERI)) {
+    const [intreg, adresa, cuvant, numar] = potrivire
+    const start = potrivire.index!
+    bucati.push(text.slice(pozitie, start))
+    if (adresa) bucati.push(<LinkExtern key={start} adresa={adresa} />)
+    else bucati.push(cuvant, <LinkCapitol key={start} numar={numar} />)
+    pozitie = start + intreg.length
   }
-  out.push(t.slice(last))
-  return <>{t.split('\n').length > 1 && out.length === 1 ? t.split('\n').map((l, i) => <Fragment key={i}>{i > 0 && <br />}{l}</Fragment>) : out}</>
+  bucati.push(text.slice(pozitie))
+
+  return <>{bucati}</>
+}
+
+// Celulele de tabel cu mai multe paragrafe vin cu „\n” între ele; le păstrăm pe rânduri separate.
+export default function Txt({ t }: { t: string }) {
+  return (
+    <>
+      {t.split('\n').map((rand, i) => (
+        <span key={i}>
+          {i > 0 && <br />}
+          <RandCuLinkuri text={rand} />
+        </span>
+      ))}
+    </>
+  )
 }

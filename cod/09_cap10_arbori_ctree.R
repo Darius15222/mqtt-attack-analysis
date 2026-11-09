@@ -1,109 +1,266 @@
-# Cap. 10: arborii de decizie cu partykit::ctree (test statistic + Bonferroni la fiecare nod).
-# Rulare: Rscript 09_cap10_arbori_ctree.R ../mqttdataset_reduced.csv.zip folder_grafice
+# =============================================================================
+# Cap. 10: arborii de decizie cu partykit::ctree
+#
+# Reproduce cifrele din cap. 10: alegerea adâncimii (10.3), tabelul testelor
+# din rădăcină (10.1), arborele de clasificare și frunzele lui (10.4),
+# metricile pe test (10.5), verificările din 10.2 / 10.4 și arborele de
+# regresie pentru tcp.len (10.6).
+#
+# ctree alege la fiecare nod variabila cu cel mai mic p al unui test de
+# independență și desparte nodul doar dacă acest p, corectat Bonferroni,
+# este sub 0,05. Așa arborele se oprește singur, fără tăiere ulterioară.
+#
+# Intrări:
+#   1. arhiva zip cu mqttdataset_reduced.csv
+#   2. (opțional) folderul de ieșire pentru CSV-uri
+# Ieșiri:
+#   la ecran: toate rezultatele;
+#   în folder: adancime_clasificare.csv, adancime_regresie.csv (10.3) și
+#   noduri_clasificare.csv, noduri_regresie.csv (pentru 10_grafice_arbori.py).
+#
+# Rulare (durează câteva minute; are nevoie de r-base și r-cran-partykit):
+#   Rscript 09_cap10_arbori_ctree.R ../mqttdataset_reduced.csv.zip folder_grafice
+# =============================================================================
+
 suppressMessages(library(partykit))
-a <- commandArgs(TRUE)
-d <- read.csv(unz(a[1], "mqttdataset_reduced.csv"), check.names = FALSE,
+argumente <- commandArgs(TRUE)
+
+
+# ---- Citirea datelor --------------------------------------------------------
+
+# Coloanele hex se citesc ca text: altfel R le transformă în numere,
+# iar „0” și „0x00000000” ar deveni aceeași valoare.
+d <- read.csv(unz(argumente[1], "mqttdataset_reduced.csv"), check.names = FALSE,
               colClasses = c(tcp.flags = "character", mqtt.conack.flags = "character",
-                             mqtt.conflags = "character", mqtt.hdrflags = "character"))  # hex: text, nu număr
+                             mqtt.conflags = "character", mqtt.hdrflags = "character"))
 names(d) <- make.names(names(d))
-for (v in c(names(d)[sapply(d, is.character)], "mqtt.msgtype", "mqtt.dupflag", "mqtt.ver")) d[[v]] <- factor(d[[v]])
+
+# Textul și codurile (tipul mesajului, dupflag, versiunea) sunt categorii, nu numere.
+for (v in c(names(d)[sapply(d, is.character)], "mqtt.msgtype", "mqtt.dupflag", "mqtt.ver")) {
+  d[[v]] <- factor(d[[v]])
+}
 options(digits = 10)  # pragurile din print, nerotunjite
 d$is_attack <- factor(ifelse(d$target == "legitimate", "normal", "atac"), c("normal", "atac"))
 
-# 70/30, separat pe fiecare clasă (aceleași proporții în ambele părți)
+
+# ---- Împărțirea 70/30 -------------------------------------------------------
+
+# Separat pe fiecare clasă, ca atacurile rare să aibă aceleași proporții în ambele părți.
 set.seed(42)
-tr <- logical(nrow(d))
-for (cl in levels(d$target)) { i <- which(d$target == cl); tr[sample(i, round(0.7 * length(i)))] <- TRUE }
-D <- d[tr, ]; Te <- d[!tr, ]
-cat("constructie", nrow(D), "test", nrow(Te), "\n"); print(table(D$target)); print(table(D$is_attack))
+in_constructie <- logical(nrow(d))
+for (clasa in levels(d$target)) {
+  randuri <- which(d$target == clasa)
+  in_constructie[sample(randuri, round(0.7 * length(randuri)))] <- TRUE
+}
+constr <- d[in_constructie, ]
+test <- d[!in_constructie, ]
+cat("constructie", nrow(constr), "test", nrow(test), "\n")
+print(table(constr$target))
+print(table(constr$is_attack))
 
-ctl <- function(md, tt = "Bonferroni") ctree_control(teststat = "quadratic", testtype = tt, mincriterion = 0.95,
-                                                     minsplit = 20, minbucket = 300, maxdepth = md)
+
+# ---- Setările arborilor și metricile ----------------------------------------
+
+# quadratic + Bonferroni: testul chi-pătrat al fiecărei variabile, cu p înmulțit
+#   cu numărul de variabile testate (altfel, cu 7 variabile, una ar ieși
+#   „semnificativă” din întâmplare mult mai des de 5% din cazuri);
+# mincriterion 0,95: se desparte doar dacă 1 - p ajustat > 0,95;
+# minbucket 300: fiecare frunză are măcar 300 de pachete, ca să nu apară
+#   frunze pentru câteva pachete izolate (cu 230.000 de rânduri, aproape orice
+#   despărțire ar fi „semnificativă”).
+setari <- function(maxdepth, testtype = "Bonferroni") {
+  ctree_control(teststat = "quadratic", testtype = testtype, mincriterion = 0.95,
+                minsplit = 20, minbucket = 300, maxdepth = maxdepth)
+}
 X7 <- c("tcp.flags", "mqtt.msgtype", "tcp.len", "tcp.time_delta", "mqtt.qos", "mqtt.dupflag", "mqtt.ver")
-f_cls <- reformulate(X7, "is_attack")
-f_reg <- tcp.len ~ target + tcp.flags + mqtt.msgtype + tcp.time_delta
+formula_clasificare <- reformulate(X7, "is_attack")
+formula_regresie <- tcp.len ~ target + tcp.flags + mqtt.msgtype + tcp.time_delta
 
-met <- function(y, p) { tp <- sum(p == "atac" & y == "atac"); fp <- sum(p == "atac" & y == "normal")
-  fn <- sum(p == "normal" & y == "atac"); s <- tp / (tp + fn); pr <- tp / (tp + fp)
-  round(c(acc = mean(p == y), sens = s, prec = pr, f1 = 2 * s * pr / (s + pr)), 4) }
-reg <- function(y, p) round(c(MAE = mean(abs(y - p)), RMSE = sqrt(mean((y - p)^2)),
-                              R2 = 1 - sum((y - p)^2) / sum((y - mean(y))^2)), 4)
+# acuratețe, sensibilitate, precizie, F1; clasa pozitivă este „atac”
+metrici_clasificare <- function(real, prezis) {
+  tp <- sum(prezis == "atac" & real == "atac")
+  fp <- sum(prezis == "atac" & real == "normal")
+  fn <- sum(prezis == "normal" & real == "atac")
+  sensibilitate <- tp / (tp + fn)
+  precizie <- tp / (tp + fp)
+  round(c(acc = mean(prezis == real), sens = sensibilitate, prec = precizie,
+          f1 = 2 * sensibilitate * precizie / (sensibilitate + precizie)), 4)
+}
+metrici_regresie <- function(real, prezis) {
+  round(c(MAE = mean(abs(real - prezis)), RMSE = sqrt(mean((real - prezis)^2)),
+          R2 = 1 - sum((real - prezis)^2) / sum((real - mean(real))^2)), 4)
+}
 
-out <- if (is.na(a[2])) NULL else { dir.create(a[2], showWarnings = FALSE); a[2] }
-salv <- function(x, f) { print(x); if (!is.null(out)) write.csv(x, file.path(out, f), row.names = FALSE) }
+folder_iesire <- if (is.na(argumente[2])) NULL else {
+  dir.create(argumente[2], showWarnings = FALSE)
+  argumente[2]
+}
+afiseaza_si_salveaza <- function(tabel, fisier) {
+  print(tabel)
+  if (!is.null(folder_iesire)) write.csv(tabel, file.path(folder_iesire, fisier), row.names = FALSE)
+}
+
+
+# ---- 10.3 Alegerea adâncimii maxime -----------------------------------------
 
 cat("\n10.3 maxdepth, clasificare\n")
-salv(do.call(rbind, lapply(2:6, function(md) { m <- ctree(f_cls, D, control = ctl(md))
-  data.frame(maxdepth = md, frunze = width(m), t(met(D$is_attack, predict(m))[c(1, 4)]), t(met(Te$is_attack, predict(m, Te))[c(1, 4)])) })),
-  "adancime_clasificare.csv")  # coloane: acc, f1 constructie; acc.1, f1.1 test
+# coloanele din CSV: acc, f1 pe construcție; acc.1, f1.1 pe test
+afiseaza_si_salveaza(do.call(rbind, lapply(2:6, function(md) {
+  arbore <- ctree(formula_clasificare, constr, control = setari(md))
+  data.frame(maxdepth = md, frunze = width(arbore),
+             t(metrici_clasificare(constr$is_attack, predict(arbore))[c(1, 4)]),
+             t(metrici_clasificare(test$is_attack, predict(arbore, test))[c(1, 4)]))
+})), "adancime_clasificare.csv")
+
 cat("\n10.3 maxdepth, regresie\n")
-salv(do.call(rbind, lapply(2:6, function(md) { m <- ctree(f_reg, D, control = ctl(md))
-  data.frame(maxdepth = md, frunze = width(m), R2_constr = reg(D$tcp.len, predict(m))[[3]], t(reg(Te$tcp.len, predict(m, Te)))) })),
-  "adancime_regresie.csv")
+afiseaza_si_salveaza(do.call(rbind, lapply(2:6, function(md) {
+  arbore <- ctree(formula_regresie, constr, control = setari(md))
+  data.frame(maxdepth = md, frunze = width(arbore),
+             R2_constr = metrici_regresie(constr$tcp.len, predict(arbore))[[3]],
+             t(metrici_regresie(test$tcp.len, predict(arbore, test))))
+})), "adancime_regresie.csv")
 
-m <- ctree(f_cls, D, control = ctl(5))
-cat("\n10.4 arborele de clasificare\n"); print(m)
-cat("aceleasi predictii la maxdepth 6:", identical(predict(m, Te), predict(ctree(f_cls, D, control = ctl(6)), Te)), "\n")
 
+# ---- 10.4 Arborele de clasificare (maxdepth 5) ------------------------------
+
+m <- ctree(formula_clasificare, constr, control = setari(5))
+cat("\n10.4 arborele de clasificare\n")
+print(m)
+cat("aceleasi predictii la maxdepth 6:",
+    identical(predict(m, test), predict(ctree(formula_clasificare, constr, control = setari(6)), test)), "\n")
+
+
+# ---- 10.1 Testele din rădăcină ----------------------------------------------
+
+# Statistica fiecărei variabile în rădăcină, cu p recalculat din chi-pătrat;
+# log10p7 = p înmulțit cu 7 (corecția Bonferroni pentru cele 7 variabile).
 cat("\n10.1 radacina: statistica, df, log10 p, log10 p*7\n")
-st <- info_node(node_party(m))$criterion["statistic", ]
-df <- sapply(X7, function(v) if (is.factor(D[[v]])) nlevels(droplevels(D[[v]])) - 1 else 1)
-lp <- pchisq(st, df, lower.tail = FALSE, log.p = TRUE) / log(10)
-print(round(cbind(T = st, df = df, log10p = lp, log10p7 = lp + log10(7))[order(lp), ], 2))
-q <- table(D$mqtt.qos > 0, D$is_attack); E <- outer(rowSums(q), colSums(q)) / sum(q)
-cat("tabel qos: O\n"); print(q); cat("E\n"); print(round(E, 1)); cat("chi2", sum((q - E)^2 / E), " (n-1) r2", (nrow(D) - 1) * cor(D$mqtt.qos, as.numeric(D$is_attack))^2, " r", cor(D$mqtt.qos, as.numeric(D$is_attack)), "\n")
+statistici <- info_node(node_party(m))$criterion["statistic", ]
+grade_libertate <- sapply(X7, function(v) if (is.factor(constr[[v]])) nlevels(droplevels(constr[[v]])) - 1 else 1)
+log10_p <- pchisq(statistici, grade_libertate, lower.tail = FALSE, log.p = TRUE) / log(10)
+print(round(cbind(T = statistici, df = grade_libertate, log10p = log10_p, log10p7 = log10_p + log10(7))[order(log10_p), ], 2))
 
-mu <- ctree(f_cls, D, control = ctl(5, "Univariate"))
-cat("\nfara Bonferroni: frunze", width(mu), " aceleasi predictii pe test:", identical(predict(mu, Te), predict(m, Te)), "\n")
+# Verificare de mână pentru mqtt.qos: statistica este chi-pătrat pe tabelul 2x2
+# (qos > 0 față de atac), adică (n - 1) * r².
+q <- table(constr$mqtt.qos > 0, constr$is_attack)
+E <- outer(rowSums(q), colSums(q)) / sum(q)
+cat("tabel qos: O\n")
+print(q)
+cat("E\n")
+print(round(E, 1))
+cat("chi2", sum((q - E)^2 / E),
+    " (n-1) r2", (nrow(constr) - 1) * cor(constr$mqtt.qos, as.numeric(constr$is_attack))^2,
+    " r", cor(constr$mqtt.qos, as.numeric(constr$is_attack)), "\n")
+
+# Același arbore fără corecția Bonferroni
+fara_bonferroni <- ctree(formula_clasificare, constr, control = setari(5, "Univariate"))
+cat("\nfara Bonferroni: frunze", width(fara_bonferroni),
+    " aceleasi predictii pe test:", identical(predict(fara_bonferroni, test), predict(m, test)), "\n")
+
+
+# ---- 10.4 Frunzele arborelui de clasificare ---------------------------------
 
 cat("\nfrunze: id | regula | n | % atac | prezice | clase\n")
-fn <- predict(m, type = "node"); rl <- partykit:::.list.rules.party(m)
-for (id in sort(unique(fn))) { i <- fn == id; k <- sort(table(D$target[i]), decreasing = TRUE); k <- k[k > 0]
-  cat(id, "|", rl[as.character(id)], "|", sum(i), "|", round(100 * mean(D$is_attack[i] == "atac"), 2), "|",
-      as.character(predict(m, D[which(i)[1], ])), "|", paste(names(k), k, collapse = "; "), "\n") }
+frunza_constr <- predict(m, type = "node")
+reguli <- partykit:::.list.rules.party(m)
+for (id in sort(unique(frunza_constr))) {
+  in_frunza <- frunza_constr == id
+  clase <- sort(table(constr$target[in_frunza]), decreasing = TRUE)
+  clase <- clase[clase > 0]
+  cat(id, "|", reguli[as.character(id)], "|", sum(in_frunza), "|",
+      round(100 * mean(constr$is_attack[in_frunza] == "atac"), 2), "|",
+      as.character(predict(m, constr[which(in_frunza)[1], ])), "|",
+      paste(names(clase), clase, collapse = "; "), "\n")
+}
 
-p <- predict(m, Te)
-cat("\n10.5 test\n"); print(table(real = Te$is_attack, prezis = p))
-cat("test", met(Te$is_attack, p), "\nconstructie", met(D$is_attack, predict(m)), "\n")
-print(t(sapply(split(p != Te$is_attack, Te$target), function(x) c(n = length(x), gresite = sum(x)))))
-ratate <- Te$is_attack == "atac" & p == "normal"
-cat("atacuri ratate pe frunze:\n"); print(table(predict(m, Te[ratate, ], type = "node")))
+
+# ---- 10.5 Evaluarea pe test -------------------------------------------------
+
+prezis <- predict(m, test)
+cat("\n10.5 test\n")
+print(table(real = test$is_attack, prezis = prezis))
+cat("test", metrici_clasificare(test$is_attack, prezis),
+    "\nconstructie", metrici_clasificare(constr$is_attack, predict(m)), "\n")
+print(t(sapply(split(prezis != test$is_attack, test$target), function(x) c(n = length(x), gresite = sum(x)))))
+ratate <- test$is_attack == "atac" & prezis == "normal"
+cat("atacuri ratate pe frunze:\n")
+print(table(predict(m, test[ratate, ], type = "node")))
+
+
+# ---- Verificări 10.2 / 10.4 -------------------------------------------------
 
 cat("\nverificari 10.2 / 10.4\n")
-X19 <- setdiff(names(d)[sapply(d, function(x) length(unique(x)) > 1)], c("target", "is_attack", "mqtt.msg", "mqtt.msgid"))
-m19 <- ctree(reformulate(X19, "is_attack"), D, control = ctl(5))
-cat(length(X19), "variabile: F1 test", met(Te$is_attack, predict(m19, Te))[4], " radacina:", names(m19$data)[split_node(node_party(m19))$varid], "\n")
-D$len3 <- cut(D$tcp.len, c(-1, 0, 20, Inf)); Te$len3 <- cut(Te$tcp.len, c(-1, 0, 20, Inf))
-mb <- ctree(reformulate(c(setdiff(X7, "tcp.len"), "len3"), "is_attack"), D, control = ctl(5))
-cat("tcp.len in 0 / 1-20 / 21+: F1 test", met(Te$is_attack, predict(mb, Te))[4], "\n")
+# Toate variabilele care nu sunt constante (fără clasă, conținutul mesajului și id-ul lui)
+X19 <- setdiff(names(d)[sapply(d, function(x) length(unique(x)) > 1)],
+               c("target", "is_attack", "mqtt.msg", "mqtt.msgid"))
+m19 <- ctree(reformulate(X19, "is_attack"), constr, control = setari(5))
+cat(length(X19), "variabile: F1 test", metrici_clasificare(test$is_attack, predict(m19, test))[4],
+    " radacina:", names(m19$data)[split_node(node_party(m19))$varid], "\n")
 
-r <- ctree(f_reg, D, control = ctl(4))
-cat("\n10.6 arborele de regresie\n"); print(r)
-pr <- predict(r, Te); e <- Te$tcp.len - pr
-cat("constructie", reg(D$tcp.len, predict(r)), "\ntest", reg(Te$tcp.len, pr), "\n")
-cat("suma |e|", sum(abs(e)), " SSE", sum(e^2), " SST", sum((Te$tcp.len - mean(Te$tcp.len))^2), "\n")
-cat("cota SSE pe clase:\n"); print(round(tapply(e^2, Te$target, sum) / sum(e^2), 4))
-rn <- predict(r, type = "node")
+# tcp.len grupat în 3 intervale în loc de valoarea exactă
+constr$len3 <- cut(constr$tcp.len, c(-1, 0, 20, Inf))
+test$len3 <- cut(test$tcp.len, c(-1, 0, 20, Inf))
+m_len3 <- ctree(reformulate(c(setdiff(X7, "tcp.len"), "len3"), "is_attack"), constr, control = setari(5))
+cat("tcp.len in 0 / 1-20 / 21+: F1 test", metrici_clasificare(test$is_attack, predict(m_len3, test))[4], "\n")
+
+
+# ---- 10.6 Arborele de regresie pentru tcp.len (maxdepth 4) ------------------
+
+r <- ctree(formula_regresie, constr, control = setari(4))
+cat("\n10.6 arborele de regresie\n")
+print(r)
+prezis_reg <- predict(r, test)
+eroare <- test$tcp.len - prezis_reg
+cat("constructie", metrici_regresie(constr$tcp.len, predict(r)), "\ntest", metrici_regresie(test$tcp.len, prezis_reg), "\n")
+cat("suma |e|", sum(abs(eroare)), " SSE", sum(eroare^2), " SST", sum((test$tcp.len - mean(test$tcp.len))^2), "\n")
+cat("cota SSE pe clase:\n")
+print(round(tapply(eroare^2, test$target, sum) / sum(eroare^2), 4))
+
+frunza_reg <- predict(r, type = "node")
 cat("frunze regresie: id | n | media | mediana | clase\n")
-for (id in sort(unique(rn))) { i <- rn == id; k <- table(droplevels(D$target[i]))
-  cat(id, "|", sum(i), "|", round(mean(D$tcp.len[i]), 1), "|", median(D$tcp.len[i]), "|", paste(names(k), k, collapse = "; "), "\n") }
+for (id in sort(unique(frunza_reg))) {
+  in_frunza <- frunza_reg == id
+  clase <- table(droplevels(constr$target[in_frunza]))
+  cat(id, "|", sum(in_frunza), "|", round(mean(constr$tcp.len[in_frunza]), 1), "|",
+      median(constr$tcp.len[in_frunza]), "|", paste(names(clase), clase, collapse = "; "), "\n")
+}
 
 cat("\ncomparatie cu regresia liniara (R2 test: dreapta, arbore)\n")
 for (f in list(mqtt.len ~ tcp.len, tcp.time_delta ~ tcp.len + mqtt.len)) {
-  l <- lm(f, D); t <- ctree(f, D, control = ctl(4)); y <- Te[[all.vars(f)[1]]]
-  cat(deparse(f), reg(y, predict(l, Te))[3], reg(y, predict(t, Te))[3], "\n") }
-
-# nodurile, pentru desene (10_grafice_arbori.py): id, copii, variabila, p ajustat, etichetele ramurilor, frunze
-noduri <- function(t, y) {
-  fn <- predict(t, type = "node")
-  do.call(rbind, lapply(nodeids(t), function(id) { nd <- nodeapply(t, id, identity)[[1]]; sp <- split_node(nd)  # id-urile din arborele întreg
-    v <- y[fn %in% nodeids(t, id, terminal = TRUE)]
-    r <- data.frame(id = id, copii = "", var = "", p = NA, ramuri = "", n = length(v))
-    if (!is.null(sp)) { r$copii <- paste(sapply(kids_node(nd), id_node), collapse = ";"); r$var <- names(t$data)[sp$varid]
-      r$p <- info_node(nd)$p.value; r$ramuri <- paste(character_split(sp, t$data, digits = 6)$levels, collapse = "|") }
-    cbind(r, if (is.factor(y)) t(as.matrix(table(v))) else t(c(quantile(v, c(0, .25, .5, .75, 1)), media = mean(v)))) }))
+  liniar <- lm(f, constr)
+  arbore <- ctree(f, constr, control = setari(4))
+  real <- test[[all.vars(f)[1]]]
+  cat(deparse(f), metrici_regresie(real, predict(liniar, test))[3], metrici_regresie(real, predict(arbore, test))[3], "\n")
 }
-if (!is.null(out)) {
-  write.csv(noduri(m, D$target), file.path(out, "noduri_clasificare.csv"), row.names = FALSE)
-  write.csv(noduri(r, D$tcp.len), file.path(out, "noduri_regresie.csv"), row.names = FALSE)
+
+
+# ---- Tabelul nodurilor, pentru desene (10_grafice_arbori.py) ----------------
+
+# Un rând pentru fiecare nod: id, copii (id-uri separate prin „;”), variabila
+# despărțirii, p ajustat, etichetele ramurilor (separate prin „|”), n și
+# conținutul nodului pe datele de construcție: numărul de pachete din fiecare
+# clasă (clasificare) sau cuantilele și media lui tcp.len (regresie).
+# Nodurile interne nu au rândurile lor în predict(type = "node"), așa că
+# se adună frunzele de sub ele.
+noduri <- function(arbore, y) {
+  frunza <- predict(arbore, type = "node")
+  do.call(rbind, lapply(nodeids(arbore), function(id) {
+    nod <- nodeapply(arbore, id, identity)[[1]]  # id-urile din arborele întreg
+    despartire <- split_node(nod)
+    valori <- y[frunza %in% nodeids(arbore, id, terminal = TRUE)]
+    rand <- data.frame(id = id, copii = "", var = "", p = NA, ramuri = "", n = length(valori))
+    if (!is.null(despartire)) {
+      rand$copii <- paste(sapply(kids_node(nod), id_node), collapse = ";")
+      rand$var <- names(arbore$data)[despartire$varid]
+      rand$p <- info_node(nod)$p.value
+      rand$ramuri <- paste(character_split(despartire, arbore$data, digits = 6)$levels, collapse = "|")
+    }
+    continut <- if (is.factor(y)) t(as.matrix(table(valori))) else
+      t(c(quantile(valori, c(0, .25, .5, .75, 1)), media = mean(valori)))
+    cbind(rand, continut)
+  }))
+}
+if (!is.null(folder_iesire)) {
+  write.csv(noduri(m, constr$target), file.path(folder_iesire, "noduri_clasificare.csv"), row.names = FALSE)
+  write.csv(noduri(r, constr$tcp.len), file.path(folder_iesire, "noduri_regresie.csv"), row.names = FALSE)
 }
