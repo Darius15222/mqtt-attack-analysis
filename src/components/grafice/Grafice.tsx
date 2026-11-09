@@ -101,11 +101,13 @@ function Arbore() {
   const d = useJson<Nod>('arbore.json')
   if (!d) return null
   const scurt = (s: string) => s.replace(/0x0+([0-9a-f]{2})/g, '0x$1').replace('<=', '≤')
+  // pe grafic, listele lungi de valori se scurtează (lista întreagă apare la hover)
+  const eticheta = (s: string) => { const v = scurt(s).split(', '); return v.length > 3 ? `${v.slice(0, 2).join(', ')} … (${v.length} valori)` : v.join(', ') }
   const conv = (x: Nod): object => ({
     name: x.children ? x.var : x.atac >= 0.5 ? `atac ${ro(100 * x.atac, 1)}%` : `normal ${ro(100 * (1 - x.atac), 1)}%`,
     nod: x,
     value: x.n,
-    label: { formatter: () => `${x.ramura ? `{r|${scurt(x.ramura).slice(0, 34)}}\n` : ''}{n|#${x.id}} ${x.children ? `{v|${x.var}}` : x.atac >= 0.5 ? `{a|atac ${ro(100 * x.atac, 1)}%}` : `{o|normal ${ro(100 * (1 - x.atac), 1)}%}`}` },
+    label: { formatter: () => `${x.ramura ? `{r|${eticheta(x.ramura)}}\n` : ''}{n|#${x.id}} ${x.children ? `{v|${x.var}}` : x.atac >= 0.5 ? `{a|atac ${ro(100 * x.atac, 1)}%}` : `{o|normal ${ro(100 * (1 - x.atac), 1)}%}`}` },
     itemStyle: { color: x.children ? '#22d3ee' : x.atac >= 0.5 ? '#f87171' : '#4ade80', borderColor: '#0a0e14' },
     children: x.children?.map(conv),
   })

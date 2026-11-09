@@ -31,6 +31,10 @@ export default function CodComplet() {
         <a className="text-cyan hover:underline" href="https://www.kaggle.com/datasets/cnrieiit/mqttset" target="_blank" rel="noreferrer">Kaggle (MQTTset)</a>.
         pandas citește direct fișierul .zip.
       </p>
+      <a href={`${import.meta.env.BASE_URL}MQTTset_cod.pdf`} target="_blank" rel="noreferrer"
+        className="mt-4 inline-flex items-center gap-2 rounded-md border border-cyan/40 bg-cyan/10 px-3 py-1.5 font-mono text-sm text-cyan hover:bg-cyan/20">
+        ↓ Codul în PDF (16 pagini)
+      </a>
       <h2 className="mt-8 mb-2 font-semibold text-white">Rulare</h2>
       <pre className="overflow-x-auto rounded-lg border border-line bg-[#0d1117] p-4 font-mono text-[12.5px] leading-relaxed text-green/90">{rulare}</pre>
       <div className="mt-8 grid gap-2 sm:grid-cols-2">
