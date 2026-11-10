@@ -1,6 +1,10 @@
 """
 Pregătește PDF-ul cu codul analizei: scrie o pagină HTML cu toate scripturile din cod/, colorate și cu numere de linie.
 PDF-ul se obține tipărind pagina cu Chromium (Playwright, page.pdf, format A4), apoi se pune în public/MQTTset_cod.pdf.
+Setările de tipărire (Playwright page.pdf):
+  format 'A4', margin top/bottom 14mm și left/right 12mm, printBackground true,
+  displayHeaderFooter true, headerTemplate '<span></span>',
+  footerTemplate: „Codul analizei MQTTset · <pageNumber> / <totalPages>” (8px, gri, centrat).
 
 Rulare:
   python3 scripts/cod_pdf.py iesire.html

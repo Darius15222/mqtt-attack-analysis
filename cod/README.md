@@ -34,5 +34,5 @@ Rscript 09_cap10_arbori_ctree.R ../mqttdataset_reduced.csv.zip arbori   # cifrel
 venv/bin/python 10_grafice_arbori.py arbori arbori                      # cele 3 grafice din cap. 10
 ```
 
-Arborii din document sunt făcuți cu `partykit::ctree` (quadratic, Bonferroni, α = 0,05, minsplit 20, minbucket 300, maxdepth 5 / 4), cu împărțirea 70/30 făcută în script (pe fiecare clasă, `set.seed(42)`).
+Arborii din document sunt făcuți cu `partykit::ctree` (quadratic, Bonferroni, α = 0,05, minsplit 20, minbucket 300, maxdepth 5 / 4), construiți și verificați pe toate pachetele (fără împărțire în construcție și test).
 Coloanele hex (`tcp.flags`, `mqtt.conack.flags`, `mqtt.conflags`, `mqtt.hdrflags`) se citesc ca text: altfel R le transformă în numere, iar „0” și „0x00000000” devin aceeași valoare.

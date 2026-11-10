@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
 // Încarcă un fișier JSON din public/date/ (scris de scripts/date_grafice.py).
-// Întoarce null până când fișierul s-a încărcat.
+// Întoarce null până când fișierul s-a încărcat (sau dacă nu s-a putut încărca).
 export function useDateGrafic<T>(numeFisier: string): T | null {
   const [date, setDate] = useState<T | null>(null)
 
@@ -9,6 +9,7 @@ export function useDateGrafic<T>(numeFisier: string): T | null {
     fetch(`${import.meta.env.BASE_URL}date/${numeFisier}`)
       .then((raspuns) => raspuns.json())
       .then(setDate)
+      .catch((eroare) => console.error(`Nu s-a putut încărca ${numeFisier}:`, eroare))
   }, [numeFisier])
 
   return date

@@ -9,7 +9,7 @@ Intrări (în folderul dat ca prim argument):
 Ieșiri (în folderul dat ca al doilea argument):
   arbore_clasificare.png  - arborele is_attack; în fiecare frunză, bara cu clasele pachetelor
   arbore_regresie.png     - arborele tcp.len; în fiecare frunză, boxplot pe scară log
-  adancime.png            - F1 / R² pe construcție și test, în funcție de maxdepth
+  adancime.png            - F1 / R² pe toate pachetele, în funcție de maxdepth
 
 Rulare:
   python 10_grafice_arbori.py folder_csv folder_iesire
@@ -174,15 +174,14 @@ deseneaza_arbore(f"{folder_csv}/noduri_regresie.csv", "Arborele de regresie (tcp
 clasificare = pd.read_csv(f"{folder_csv}/adancime_clasificare.csv")
 regresie = pd.read_csv(f"{folder_csv}/adancime_regresie.csv")
 adancimi = clasificare.maxdepth
-# (construcție, test, titlu, adâncimea aleasă); în CSV, f1.1 este F1 pe test
-panouri = [(clasificare.f1, clasificare["f1.1"], "Arborele de clasificare: F1", 5),
-           (regresie.R2_constr, regresie.R2, "Arborele de regresie: R²", 4)]
+# (valori pe toate pachetele, titlu, adâncimea aleasă)
+panouri = [(clasificare.f1, "Arborele de clasificare: F1", 5),
+           (regresie.R2, "Arborele de regresie: R²", 4)]
 
 fig, axs = plt.subplots(1, 2, figsize=(15.3, 5.78))
-for ax, (constructie, test, titlu, aleasa) in zip(axs, panouri):
-    ax.plot(adancimi, constructie, "o-", color="#2a7ad6", lw=2.5, ms=8, label="construcție (70%)")
-    ax.plot(adancimi, test, "o--", color="#e8692f", lw=2.5, ms=8, label="test (30%)")
-    for adancime, valoare in zip(adancimi, test):
+for ax, (valori, titlu, aleasa) in zip(axs, panouri):
+    ax.plot(adancimi, valori, "o-", color="#2a7ad6", lw=2.5, ms=8)
+    for adancime, valoare in zip(adancimi, valori):
         ax.annotate(format_zecimale(valoare, 3), (adancime, valoare), textcoords="offset points", xytext=(0, -16),
                     ha="center", fontsize=9)
     ax.axvline(aleasa, color="gray", ls=":")
@@ -190,7 +189,6 @@ for ax, (constructie, test, titlu, aleasa) in zip(axs, panouri):
     ax.set_title(titlu)
     ax.set_xlabel("maxdepth")
     ax.set_xticks(adancimi)
-    ax.legend(frameon=False, loc="upper left")
     ax.yaxis.set_major_formatter(lambda v, _: format_scurt(round(v, 3)))
     ax.grid(axis="y", alpha=0.3)
     ax.spines[["top", "right"]].set_visible(False)

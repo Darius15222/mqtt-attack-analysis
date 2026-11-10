@@ -18,12 +18,18 @@ npm run build && npm run preview   # versiunea finală, ca pe GitHub Pages
 |---|---|
 | textul unui capitol (pași, tabele, imagini) | `src/data/capNN.ts` |
 | titlul scurt, rezumatul, scripturile, graficele interactive ale unui capitol | `src/data/capitole.ts` |
-| cifrele de pe dashboard, culorile claselor, pașii analizei | `src/data/cifre.ts` |
+| culorile claselor, cifrele graficelor interactive | `src/data/cifre.ts` |
+| descrierea de pe prima pagină | `src/pages/Dashboard.tsx` (`DESCRIERE`) |
 | graficele (PNG) | `public/img/` |
 | datele graficelor interactive | `public/date/*.json` |
 | scripturile afișate | `cod/` |
 
-Regenerare din docx (suprascrie `src/data/capNN.ts`, `intro.ts` și `public/img/`):
+Fiecare capitol de analiză din docx are aceeași ordine (capitolele 2, 4 și 14, care nu sunt analize, au doar „Ce facem și de ce”), cu titlurile părților ca paragrafe bold, nenumerotate:
+**Ce facem și de ce** → **Ipoteza** (sau **Scopul**, unde nu se testează nimic) → **Pașii** (Intrare / Calcul /
+Ieșire / Decizie) → **Demonstrația** (secțiunile N.M, tabele, grafice) → **Concluzia**. `genereaza.py` le recunoaște
+după text, iar site-ul le numerotează 1-5 și pune concluzia într-un panou verde.
+
+Regenerare din docx (suprascrie `src/data/capNN.ts` și `public/img/`):
 
 ```bash
 python3 scripts/genereaza.py ../../Facultate/ai-ml/MQTTset_tema.docx
@@ -37,7 +43,7 @@ python3 scripts/cod_pdf.py cod.html   # apoi se tipărește în public/MQTTset_c
 src/
   main.tsx, App.tsx        pornirea aplicației și rutele (#/, #/capitol/<slug>, #/cod)
   pages/
-    Dashboard.tsx          pagina principală, împărțită în secțiuni (Hero, CifreCheie, PasiiAnalizei, ...)
+    Dashboard.tsx          pagina principală: descrierea scurtă (Hero) și cardurile capitolelor
     Capitol.tsx            orice capitol: antet, tab-urile Analiza / Codul, navigare, cuprins
     CodComplet.tsx         toate scripturile și cum se rulează
   components/
@@ -49,11 +55,12 @@ src/
   data/
     tipuri.ts              forma blocurilor (text, pas, tabel, imagine, ...)
     capitole.ts            lista capitolelor: adresă, titlu din meniu, rezumat, scripturi, grafice
-    cifre.ts               cifrele de pe dashboard, culorile claselor, matricea de confuzie
-    intro.ts, capNN.ts     conținutul, generat din docx
+    cifre.ts               culorile claselor, matricea de confuzie
+    capNN.ts               conținutul, generat din docx (ce e înainte de capitolul 1 nu intră pe site)
   lib/
     tema.ts                culorile temei pentru grafice (aceleași ca în index.css)
-    format.ts              numere în format românesc
+    format.ts              numere în format românesc, numărul capitolului pe două cifre
+    sectiuni.ts            id-urile secțiunilor („10.4” → „s-10-4”), pentru linkuri și cuprins
     useDateGrafic.ts       încarcă un JSON din public/date/
     scripturi.ts           scripturile din cod/, citite la build
     evidentiereCod.ts      colorarea codului cu Shiki

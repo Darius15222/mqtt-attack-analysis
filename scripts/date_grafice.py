@@ -93,7 +93,7 @@ scrie_json('arbore.json', construieste_nod(1))
 
 def converteste_regula(rand):
     return {
-        'stanga': rand['stanga'],
+        'stanga': rand['stanga'].replace('msgtype=fara', 'msgtype=fără MQTT'),  # eticheta din docx
         'atac': rand['atac'],
         'pachete': int(rand['pachete']),
         'support': float(rand['support']),

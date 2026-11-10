@@ -6,7 +6,7 @@ Reproduce cifrele din:
   - tabelul pe clase, testul Kruskal-Wallis, χ² pe tcp.flags și mqtt.conack.val,
     testul Mann-Whitney flood vs. legitimate (cap. 6);
   - corelațiile Spearman/Pearson și verificările din cap. 7;
-  - exemplele de rânduri și tabelul cu valori tipice normal/atac (cap. 4).
+  - exemplele de rânduri și tabelul cu valori tipice normal/atac (cap. 3).
 
 Intrare:  fișierul CSV MQTTset (merge și .zip, pandas îl citește direct).
 Ieșire:   doar text la stdout.
@@ -168,7 +168,7 @@ print("sxy", ((x - x.mean()) * (y - y.mean())).sum(),
       "sxx", ((x - x.mean()) ** 2).sum(),
       "syy", ((y - y.mean()) ** 2).sum())
 
-# --- Cap. 4: tabelul cu valori tipice „normal” vs. „atac” ---
+# --- Cap. 3: tabelul cu valori tipice „normal” vs. „atac” ---
 # Pentru atac luăm cea mai frecventă valoare care apare (aproape) numai în atacuri:
 # cel puțin 99% din rândurile cu acea valoare sunt atacuri.
 atacuri = date[date.is_attack == 1]

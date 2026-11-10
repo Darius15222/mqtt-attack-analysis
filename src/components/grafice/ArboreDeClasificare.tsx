@@ -9,7 +9,7 @@ import { Grafic, Panou } from './baza'
 type Nod = {
   id: number
   ramura: string // condiția de pe ramura care duce la nod, de ex. "<= 0" sau "0x00000018"
-  n: number // pachete de construcție în nod
+  n: number // pachete în nod
   atac: number // proporția de atacuri în nod (0-1)
   clase: Record<Clasa, number>
   var?: string // variabila după care se împarte (doar la nodurile interne)
@@ -46,9 +46,10 @@ function tooltipNod(nod: Nod) {
     .map((c) => `<span style="color:${CULORI[c]}">●</span> ${c}: ${formatNumar(nod.clase[c])}`)
     .join('<br/>')
   const ramura = nod.ramura ? ` &nbsp;<span style="color:${TEMA.textSters}">${condensat(nod.ramura)}</span>` : ''
-  const pValoare = nod.p! < 0.001 ? '< 0,001' : '= ' + formatNumar(nod.p!, 3)
+  // frunzele nu au p (nu se mai împart)
+  const pValoare = nod.var ? (nod.p! < 0.001 ? '< 0,001' : '= ' + formatNumar(nod.p!, 3)) : ''
   const impartire = nod.var ? `împarte după <b>${nod.var}</b> (p ${pValoare})<br/>` : ''
-  return `<b>Nodul ${nod.id}</b>${ramura}<br/>${formatNumar(nod.n)} pachete de construcție, ${formatNumar(100 * nod.atac, 1)}% atac<br/>${impartire}${clase}`
+  return `<b>Nodul ${nod.id}</b>${ramura}<br/>${formatNumar(nod.n)} pachete, ${formatNumar(100 * nod.atac, 1)}% atac<br/>${impartire}${clase}`
 }
 
 // Transformă un nod în formatul cerut de seria `tree` din ECharts.

@@ -4,29 +4,84 @@ const date: Capitol = {
  "titlu": "1. Dataset: MQTTset",
  "blocuri": [
   {
+   "tip": "parte",
+   "fel": "context",
+   "titlu": "Ce facem și de ce"
+  },
+  {
+   "tip": "text",
+   "text": "Înainte de orice analiză aflăm ce date avem: de unde vin și ce trafic conțin."
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
     "Link: https://www.kaggle.com/datasets/cnrieiit/mqttset",
     "Sursa originală: Vaccari, I., Chiola, G., Aiello, M., Mongelli, M., Cambiaso, E. (2020). MQTTset, a New Dataset for Machine Learning Techniques on MQTT. Sensors, 20(22), 6578. https://doi.org/10.3390/s20226578",
-    "Licență: CC BY-NC-SA 4.0. Usability pe Kaggle: 10.00.",
-    "Dimensiune pe Kaggle: versiunea 5, 9,57 GB, 24 de fișiere."
+    "Pe Kaggle: licență CC BY-NC-SA 4.0, usability 10,00, versiunea 5 (9,57 GB, 24 de fișiere)."
    ]
   },
   {
    "tip": "text",
-   "text": "MQTTset conține trafic de rețea MQTT (protocolul de mesagerie folosit în IoT), atât legitim, cât și cu atacuri. Rețeaua simulată este o casă inteligentă, cu senzori emulați cu IoT-Flock (temperatură, lumină, umiditate, mișcare, CO-Gas, fum, ventilator, încuietoare) conectați la un broker Eclipse Mosquitto. Traficul a fost capturat la broker."
+   "text": "MQTTset conține trafic MQTT (protocolul prin care dispozitivele IoT își trimit mesaje) dintr-o casă inteligentă simulată: senzori de temperatură, lumină, umiditate, mișcare, gaz, fum, plus un ventilator și o încuietoare trimit date unui broker (serverul care primește și distribuie mesajele). Pe lângă traficul normal, conține 5 atacuri: Flooding DoS, MQTT Publish Flood, SlowITe, Malformed Data și Brute Force Authentication."
+  },
+  {
+   "tip": "parte",
+   "fel": "ipoteza",
+   "titlu": "Scopul"
   },
   {
    "tip": "text",
-   "text": "Atacurile incluse sunt: Flooding DoS, MQTT Publish Flood, SlowITe, Malformed Data și Brute Force Authentication."
+   "text": "Aici nu testăm nimic. Numărăm pachetele din fiecare clasă (normal și cele 5 atacuri), pentru că numărul lor contează:"
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "o clasă cu puține pachete dă concluzii mai puțin sigure (flood are doar 613);",
+    "cu jumătate trafic normal și jumătate atacuri, un procent mare de răspunsuri corecte chiar înseamnă ceva. La 99% trafic normal, un model care spune mereu „normal” ar avea 99% corect fără să prindă niciun atac."
+   ]
+  },
+  {
+   "tip": "parte",
+   "fel": "pasi",
+   "titlu": "Pașii"
   },
   {
    "tip": "pas",
    "fel": "intrare",
    "eticheta": "Intrare",
-   "text": "versiunea redusă a datasetului (reduced): 330.926 de pachete (rânduri) și 34 de coloane, adică 33 de variabile despre fiecare pachet și ținta target, care spune dacă pachetul este normal sau ce atac este."
+   "text": "versiunea redusă a datasetului: 330.926 de pachete (rânduri), fiecare cu 33 de variabile și ținta target, care spune dacă pachetul este normal sau ce atac este."
+  },
+  {
+   "tip": "pas",
+   "fel": "calcul",
+   "eticheta": "Calcul",
+   "text": "numărul de pachete din fiecare clasă și procentul din total (pachete / 330.926 · 100)."
+  },
+  {
+   "tip": "pas",
+   "fel": "iesire",
+   "eticheta": "Ieșire",
+   "text": "tabelul din Demonstrație, cu numărul și procentul pachetelor din fiecare clasă. Toate capitolele următoare lucrează pe aceste date."
+  },
+  {
+   "tip": "pas",
+   "fel": "decizie",
+   "eticheta": "Decizie",
+   "text": "versiunea redusă, pentru că încape în memorie și are jumătate trafic normal, jumătate atacuri (165.463 fiecare). Lucrăm pe toate cele 6 clase, nu doar normal față de atac, pentru că atacurile diferă mult între ele."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Datele folosite",
+   "text": "fișierul redus, exact cum este descărcat, fără rânduri scoase sau valori modificate. Pregătirile cerute de fiecare metodă se fac doar în cod și sunt descrise în capitolul ei."
+  },
+  {
+   "tip": "parte",
+   "fel": "demonstratie",
+   "titlu": "Demonstrația"
   },
   {
    "tip": "tabel",
@@ -69,27 +124,19 @@ const date: Capitol = {
    ]
   },
   {
-   "tip": "pas",
-   "fel": "calcul",
-   "eticheta": "Calcul",
-   "text": "numărul de pachete din fiecare clasă și procentul din total (pachete / 330.926 · 100)."
+   "tip": "parte",
+   "fel": "concluzie",
+   "titlu": "Concluzia"
   },
   {
-   "tip": "pas",
-   "fel": "iesire",
-   "eticheta": "Ieșire",
-   "text": "descrierea variabilelor (3, 5), formulele (4), diferențele dintre clase (6), legăturile dintre variabile (7), două modele de predicție (8, 9), arbori de decizie (10), reguli de asociere (11), comparația cu literatura (12) și o concluzie pe atacuri (13)."
-  },
-  {
-   "tip": "pas",
-   "fel": "decizie",
-   "eticheta": "Decizie",
-   "text": "versiunea redusă, pentru că încape în memorie și este echilibrată: jumătate trafic normal, jumătate atacuri (165.463 fiecare). Analiza se face pe toate cele 6 clase, nu doar normal față de atac, pentru că atacurile diferă mult între ele."
-  },
-  {
-   "tip": "text",
-   "eticheta": "Datele folosite",
-   "text": "fișierul redus, așa cum este descărcat, fără rânduri scoase sau valori modificate. Pregătirile se fac doar în cod: ținta is_attack unește cele 5 atacuri (capitolele 9 și 10), coloanele hex (tcp.flags, mqtt.conack.flags, mqtt.conflags, mqtt.hdrflags) se citesc ca text la arbori (capitolul 10), iar la regulile de asociere variabilele numerice se împart în intervale (capitolul 11)."
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "Setul are 330.926 de pachete: jumătate trafic normal (165.463), jumătate atacuri (165.463).",
+    "Atacurile nu sunt egale între ele: dos are 39,35% din tot setul, flood doar 0,19% (613 pachete).",
+    "De aceea, unde se poate, analizele compară fiecare atac separat cu traficul normal, nu doar „atac” cu „normal”."
+   ]
   }
  ]
 }

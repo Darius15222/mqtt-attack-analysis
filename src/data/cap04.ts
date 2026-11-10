@@ -4,14 +4,19 @@ const date: Capitol = {
  "titlu": "4. Cum se calculează valorile din document",
  "blocuri": [
   {
+   "tip": "parte",
+   "fel": "context",
+   "titlu": "Ce facem și de ce"
+  },
+  {
    "tip": "text",
-   "text": "Formula fiecărei valori din document, cu un exemplu din datele noastre. Calculele s-au făcut în Python (pandas, scipy, statsmodels), iar arborii de decizie în R (partykit), pe cele 330.926 de pachete."
+   "text": "Formula fiecărei valori din document, cu un exemplu din datele noastre. Calculele s-au făcut în Python (pandas, scipy, statsmodels), iar arborii de decizie în R (partykit), pe toate cele 330.926 de pachete."
   },
   {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "formulele sunt adunate aici, înainte de prima folosire, iar capitolele următoare trimit la ele. Toate calculele sunt făcute pe toate pachetele, nu pe un eșantion; doar graficele scatter folosesc 8.000 de pachete alese la întâmplare, ca punctele să se vadă."
+   "text": "formulele sunt adunate aici, înainte de prima folosire, iar capitolele următoare trimit la ele. Calculele sunt făcute pe toate pachetele, nu pe un eșantion, inclusiv arborii (capitolul 10). Graficele scatter folosesc 8.000 de pachete alese la întâmplare, ca punctele să se vadă (la regresia pe clase din 8.3, cel mult 3.000 pe clasă)."
   },
   {
    "tip": "tabel",
@@ -24,7 +29,7 @@ const date: Capitol = {
    "randuri": [
     [
      "Media",
-     "Valoarea tipică a unei variabile. Se folosește doar la variabilele cu distribuție aproape normală.",
+     "Valoarea tipică a unei variabile. Ca valoare tipică se raportează doar la variabilele cu distribuție aproape normală.",
      "x̄ = (x1 + x2 + ... + xn) / n",
      "Valorile 1, 2, 2, 3, 10: media 3,6. tcp.len, tot setul: 152,59."
     ],
@@ -133,44 +138,44 @@ const date: Capitol = {
     [
      "Regresia Firth",
      "Fixează regresia logistică atunci când o valoare apare doar la atacuri (separare), caz în care regresia obișnuită nu se poate calcula corect.",
-     "Maximizează verosimilitatea penalizată: ln L(β) + 1/2 · ln|I(β)|, cu I matricea de informație. Corectează separarea, unde regresia obișnuită dă erori standard uriașe.",
-     "mqtt.qos: eroare standard 14.714 la regresia obișnuită, 2,35 la Firth."
+     "Maximizează verosimilitatea penalizată (verosimilitatea = cât de probabile sunt datele observate după model): ln L(β) + 1/2 · ln|I(β)|, cu I matricea de informație. Al doilea termen crește când un coeficient fuge spre infinit și îl ține finit. Corectează separarea, unde regresia obișnuită dă erori standard uriașe.",
+     "mqtt.qos: eroare standard 14.714 la regresia obișnuită (după 30 de pași; crește la fiecare pas), 2,35 la Firth."
     ],
     [
      "Statistica T (arbore)",
      "Măsoară cât de legat este un predictor de țintă, pe aceeași scară pentru orice tip de variabilă, ca arborele să poată compara predictorii între ei.",
-     "T = (n - 1) · R². R² = r² Pearson la un predictor numeric; la unul categoric, R² = suma pătratelor dintre grupuri / suma pătratelor totală. Dacă și predictorul, și ținta sunt categorice, T = (n - 1) / n · χ², practic χ². p vine din distribuția χ² cu df = 1 (numeric) sau k - 1 (k categorii).",
-     "Rădăcina arborelui de clasificare, mqtt.qos față de is_attack: r = 0,44356, r² = 0,196745, deci T = 231.647 · 0,196745 = 45.575, df = 1."
+     "T = (n - 1) · R². R² = r² Pearson la un predictor numeric; la unul categoric, R² = suma pătratelor dintre grupuri / suma pătratelor totală (cât din variația țintei se explică prin grupurile predictorului). Dacă și predictorul, și ținta sunt categorice, T = (n - 1) / n · χ², practic χ². p vine din distribuția χ² cu df = 1 (numeric) sau c - 1 (c categorii).",
+     "Rădăcina arborelui de clasificare, mqtt.qos față de is_attack: r = 0,44369, r² = 0,196861; arborele se construiește pe toate cele n = 330.926 de pachete, deci T = (n - 1) · r² = 330.925 · 0,196861 = 65.146, df = 1."
     ],
     [
      "Corecția Bonferroni",
      "Când se fac mai multe teste deodată, unul poate ieși sub 0,05 doar din întâmplare. Corecția ține această șansă sub 5% pentru tot grupul de teste.",
      "p ajustat = 1 - (1 - p)^k, k = numărul de teste (forma folosită de partykit); când p este mic, este practic p · k. Echivalent: p brut trebuie să fie sub aproximativ 0,05 / k.",
-     "Nodul 4 din 10.4: se testează 5 predictori; cel mai mic p este 0,0053 (mqtt.msgtype); 1 - (1 - 0,0053)⁵ = 0,026, sub 0,05, deci nodul se împarte."
+     "Nodul 21 al arborelui din 10.4 (calculul în 10.1): se testează 2 predictori; cel mai mic p este 0,000314 (tcp.len); 1 - (1 - 0,000314)² = 0,00063, sub 0,05, deci nodul se împarte."
     ],
     [
      "Arbore de decizie",
      "Împarte pachetele în grupuri tot mai omogene prin întrebări simple („variabila ≤ prag?”). Fiecare grup final (frunză) dă o predicție.",
      "La fiecare nod: T și p pentru fiecare predictor, Bonferroni, se alege predictorul cu cel mai mic p dacă p < 0,05, apoi pragul cu cea mai mare statistică; se repetă în fiecare ramură. Frunza prezice clasa majoritară (clasificare) sau media țintei (regresie).",
-     "Rădăcina: mqtt.qos ≤ 0 față de > 0. Ramura > 0 are 38.083 de pachete, toate atac."
+     "Rădăcina: mqtt.qos ≤ 0 față de > 0. Ramura > 0 are 54.431 de pachete, toate atac."
     ],
     [
      "Matricea de confuzie",
      "Arată câte pachete a prezis modelul corect și câte greșit, separat pe fiecare tip de greșeală.",
      "TP = atac prezis atac; FP = normal prezis atac (alarmă falsă); FN = atac prezis normal (atac ratat); TN = normal prezis normal.",
-     "Arborele de clasificare, pe test: TP = 45.319, FP = 409, FN = 4.320, TN = 49.230."
+     "Arborele de clasificare, pe toate pachetele: TP = 150.659, FP = 1.269, FN = 14.804, TN = 164.194."
     ],
     [
      "Accuracy, Sensitivity, Precision, F1",
      "Accuracy: cât din total este corect. Sensitivity: câte atacuri sunt prinse. Precision: din pachetele declarate atac, câte chiar sunt. F1: o singură notă, mare doar dacă Sensitivity și Precision sunt ambele mari.",
      "Accuracy = (TP + TN) / N; Sensitivity = TP / (TP + FN); Precision = TP / (TP + FP); F1 = 2 · Precision · Sensitivity / (Precision + Sensitivity).",
-     "Sensitivity = 45.319 / 49.639 = 0,9130; Precision = 45.319 / 45.728 = 0,9911; F1 = 0,9504."
+     "Sensitivity = 150.659 / 165.463 = 0,9105; Precision = 150.659 / 151.928 = 0,9916; F1 = 0,9494."
     ],
     [
      "MAE și RMSE",
      "Cât greșește în medie predicția unei valori numerice, în aceleași unități ca ținta. RMSE pune greutate mai mare pe greșelile mari.",
      "MAE = suma |y - ŷ| / n; RMSE = rădăcina din [suma (y - ŷ)² / n], cu y valoarea reală și ŷ valoarea prezisă.",
-     "Arborele de regresie, pe test: MAE = 58,39 bytes, RMSE = 834,67 bytes."
+     "Arborele de regresie: MAE = 57,02 bytes, RMSE = 823,17 bytes."
     ],
     [
      "Item și tranzacție",

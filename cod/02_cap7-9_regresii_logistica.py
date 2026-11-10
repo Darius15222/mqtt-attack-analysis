@@ -86,6 +86,12 @@ for clasa, grup in date.groupby("target"):
     print("R3", clasa, len(grup), simpla.params.round(4).tolist(),
           round(simpla.rsquared, 3), round(logaritmica.rsquared, 3))
 
+# Concluzia cap. 8: cât din fiecare clasă stă la cel mult 2 bytes de dreapta traficului normal.
+normal = date[date.target == "legitimate"]
+dreapta_normal = sm.OLS(normal["mqtt.len"], sm.add_constant(normal["tcp.len"])).fit().params
+distanta = (date["mqtt.len"] - (dreapta_normal["const"] + dreapta_normal["tcp.len"] * date["tcp.len"])).abs()
+print("R3 pe dreapta normalului (<= 2 bytes, %)", (distanta <= 2).groupby(date.target).mean().mul(100).round(1).to_dict())
+
 # --- VIF (multicoliniaritate); indicele 0 e constanta, deci pornim de la 1 ---
 X5 = sm.add_constant(date[PREDICTORI_5]).values
 print("VIF5", [round(vif(X5, i), 2) for i in range(1, 6)])
@@ -100,7 +106,8 @@ print("LOG6", logistica3.params.round(4).to_dict(), logistica3.bse.round(4).to_d
       logistica3.null_deviance, logistica3.deviance, logistica3.aic,
       "iters", logistica3.fit_history["iteration"])
 
-# Modelul cu 5 predictori are separare completă: coeficienții și erorile standard cresc
+# Modelul cu 5 predictori are separare cvasi-completă (qos = 1 și dupflag = 1 doar la atac):
+# coeficienții și erorile standard cresc
 # la fiecare pas. tol=1e-30 împiedică oprirea timpurie, ca să vedem pașii 10-30.
 for nr_pasi in [10, 15, 20, 25, 30]:
     logistica5 = sm.GLM(date.is_attack, sm.add_constant(date[PREDICTORI_5]),

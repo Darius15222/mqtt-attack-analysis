@@ -4,8 +4,22 @@ const date: Capitol = {
  "titlu": "3. Variabilele din dataset",
  "blocuri": [
   {
+   "tip": "parte",
+   "fel": "context",
+   "titlu": "Ce facem și de ce"
+  },
+  {
    "tip": "text",
-   "text": "Tabelul descrie fiecare dintre cele 34 de coloane (33 de variabile și ținta), grupate pe 7 grupe după ce descriu în protocol: TCP, antetul MQTT, conectare, răspunsul la conectare, mesajul „will\", abonare și conținutul mesajului. Numărul din prima coloană este poziția coloanei în dataset. Exemplele sunt din datele noastre. Exemplu normal: valoarea cea mai frecventă la pachetele legitimate, cu procentul ei. Exemplu atac: o valoare tipică atacului, adică cea mai frecventă dintre valorile care apar aproape doar la atac (cel puțin 99% din pachetele cu acea valoare sunt atacuri), cu procentul din pachetele de atac care o au. Dacă nu există o asemenea valoare, se arată cea mai frecventă valoare la atac, ca la normal. La mqtt.msg și mqtt.msgid (conținut și număr de ordine) se arată tot cea mai frecventă valoare."
+   "text": "Ca să înțelegem rezultatele, trebuie să știm ce înseamnă fiecare coloană din date: ce parte a pachetului descrie și ce valori are."
+  },
+  {
+   "tip": "text",
+   "text": "Tabelul descrie fiecare dintre cele 34 de coloane (33 de variabile și ținta), grupate pe 7 grupe după ce descriu în protocol: TCP, antetul MQTT, conectare, răspunsul la conectare, mesajul „will\", abonare și conținutul mesajului."
+  },
+  {
+   "tip": "parte",
+   "fel": "pasi",
+   "titlu": "Pașii"
   },
   {
    "tip": "pas",
@@ -17,7 +31,14 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "calcul",
    "eticheta": "Calcul",
-   "text": "exemplul normal este cea mai frecventă valoare la pachetele legitimate, cu procentul ei. Pentru exemplul atac, la fiecare valoare se calculează ce procent din pachetele care o au sunt atacuri; se păstrează valorile cu cel puțin 99%, iar dintre ele cea mai frecventă."
+   "text": "",
+   "puncte": [
+    "exemplul normal: cea mai frecventă valoare la pachetele legitimate, cu procentul ei;",
+    "exemplul atac: la fiecare valoare se calculează ce procent din pachetele care o au sunt atacuri; se păstrează valorile cu cel puțin 99%, iar dintre ele cea mai frecventă, cu procentul din pachetele de atac care o au;",
+    "dacă nu există o asemenea valoare, se arată cea mai frecventă valoare la atac;",
+    "la mqtt.msg și mqtt.msgid (conținut și număr de ordine) se arată tot cea mai frecventă valoare;",
+    "numărul din prima coloană a tabelului este poziția coloanei în dataset."
+   ]
   },
   {
    "tip": "pas",
@@ -29,7 +50,16 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizii",
-   "text": "grupare după partea din protocol (nu după tipul variabilei), pentru că variabilele din același grup descriu același fel de pachet și apar împreună (în 7.1 grupul de conectare are corelație 1). Pragul de 99%, ca valoarea aleasă să apară aproape numai la atac."
+   "text": "",
+   "puncte": [
+    "grupare după partea din protocol (nu după tipul variabilei), pentru că variabilele din același grup descriu același fel de pachet și apar împreună (în 7.1, cleansess, kalive, proto_len și ver din grupul de conectare au corelație 1 între ele);",
+    "pragul de 99%, ca valoarea aleasă să apară aproape numai la atac."
+   ]
+  },
+  {
+   "tip": "parte",
+   "fel": "demonstratie",
+   "titlu": "Demonstrația"
   },
   {
    "tip": "tabel",
@@ -350,7 +380,7 @@ const date: Capitol = {
      "Payload Data",
      "Conținutul mesajului publicat (textul trimis de senzor).",
      "0 (38,4%)",
-     "0 (60,3%)"
+     "0 (60,3%); 0.0 (5,6%, doar la slowite)"
     ],
     [
      "21",
@@ -377,7 +407,33 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Sursa descrierilor: specificația MQTT 3.1.1 și numele câmpurilor din Wireshark, nu documentația datasetului, care nu le explică. Categoriile (coloana a patra) spun ce rol are câmpul în protocol (antet TCP, antet MQTT, timp și așa mai departe). La mqtt.msgtype, valoarea 0 (frecventă la atac) nu e o definiție din date, ci o presupunere (pachete fără mesaj MQTT). Presupunerea se sprijină pe date: la toate pachetele cu mqtt.msgtype = 0, mqtt.hdrflags și mqtt.len sunt și ele 0. În general, 0 la un câmp MQTT înseamnă că pachetul nu are acel câmp: mqtt.conack.flags este 0x00000000 exact la cele 3.282 de pachete CONNACK și 0 la toate celelalte, iar mqtt.protoname este MQTT exact la cele 3.282 de pachete CONNECT și 0 în rest. Deci „0” și „0x00000000” nu înseamnă același lucru: primul este câmp lipsă, al doilea un CONNACK cu toate flagurile 0."
+   "text": "Sursa descrierilor: specificația MQTT 3.1.1 și numele câmpurilor din Wireshark, nu documentația datasetului, care nu le explică."
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "Categoriile (coloana a patra) spun ce rol are câmpul în protocol (antet TCP, antet MQTT, timp și așa mai departe).",
+    "La mqtt.msgtype, valoarea 0 (la 36,7% din pachetele normale și la 38,2% din atacuri) nu e o definiție din date, ci o presupunere (pachete fără mesaj MQTT). Presupunerea se sprijină pe date: la toate pachetele cu mqtt.msgtype = 0, mqtt.hdrflags și mqtt.len sunt și ele 0.",
+    "În general, 0 la un câmp MQTT înseamnă că pachetul nu are acel câmp: mqtt.conack.flags este 0x00000000 exact la cele 3.282 de pachete CONNACK și 0 la toate celelalte, iar mqtt.protoname este MQTT exact la cele 3.282 de pachete CONNECT și 0 în rest.",
+    "Deci „0” și „0x00000000” nu înseamnă același lucru: primul este câmp lipsă, al doilea un CONNACK cu toate flagurile 0."
+   ]
+  },
+  {
+   "tip": "parte",
+   "fel": "concluzie",
+   "titlu": "Concluzia"
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "Cele 34 de coloane descriu 7 părți ale pachetului: TCP, antetul MQTT, conectarea, răspunsul la conectare, mesajul „will”, abonarea și conținutul mesajului.",
+    "Valoarea 0 la un câmp MQTT înseamnă de obicei că pachetul nu are acel câmp. De exemplu, mqtt.protoname este MQTT doar la cele 3.282 de pachete CONNECT și 0 în rest.",
+    "Unele valori apar aproape numai la atac (coloana „Exemplu atac”). Ele sunt primii candidați pentru recunoașterea atacurilor în capitolele următoare."
+   ]
   }
  ]
 }

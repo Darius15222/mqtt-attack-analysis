@@ -12,7 +12,6 @@ import c10 from './cap10'
 import c11 from './cap11'
 import c12 from './cap12'
 import c13 from './cap13'
-import c14 from './cap14'
 
 // Lista capitolelor, în ordinea din document. Conținutul vine din src/data/capNN.ts (generat din docx);
 // aici stau doar informațiile pentru site: adresa paginii, titlul din meniu, rezumatul, scripturile și graficele interactive.
@@ -22,7 +21,11 @@ export type Meta = {
   scurt: string // titlul din meniu
   rezumat: string // o propoziție, sub titlu și pe cardul din dashboard
   scripturi: string[] // fișierele din cod/ care produc rezultatele capitolului (tab-ul „Codul”)
-  // grafic interactiv pus după blocul care se potrivește cu `dupa`: numele unei imagini, titlul unei secțiuni sau un cap de tabel
+  // dintr-un script lung se pot arăta doar unele linii (de la, până la, inclusiv), cu titlul lor;
+  // liniile alese formează un program care rulează singur (`rulare` = comanda); întregul e pe pagina „Codul complet”
+  fragmente?: Record<string, { titlu: string; linii: [number, number][]; rulare: string }>
+  // grafic interactiv pus după blocul care se potrivește cu `dupa`: numele unei imagini, titlul unei secțiuni,
+  // un cap de tabel sau începutul unui paragraf
   grafice?: { id: IdGrafic; dupa: string }[]
   continut: Capitol
 }
@@ -32,8 +35,9 @@ export const capitole: Meta[] = [
     nr: 1,
     slug: 'dataset',
     scurt: 'Dataset',
-    rezumat: 'MQTTset redus: 330.926 de pachete dintr-o casă inteligentă simulată, jumătate normale, jumătate cinci atacuri.',
+    rezumat: 'De unde vin datele: 330.926 de pachete, jumătate normale, jumătate din cinci atacuri.',
     scripturi: ['01_cap1-7_statistici_corelatii.py'],
+    fragmente: { '01_cap1-7_statistici_corelatii.py': { titlu: 'Citirea datelor și numărarea claselor', linii: [[17, 22], [37, 39]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' } },
     grafice: [{ id: 'clase', dupa: 'Clasă (target)' }],
     continut: c01,
   },
@@ -41,7 +45,7 @@ export const capitole: Meta[] = [
     nr: 2,
     slug: 'articole',
     scurt: 'Articole',
-    rezumat: 'Cinci articole care folosesc același dataset, ca rezultatele să se poată compara.',
+    rezumat: 'Cinci articole care au lucrat pe aceleași date, ca să ne putem compara rezultatele.',
     scripturi: [],
     continut: c02,
   },
@@ -49,8 +53,8 @@ export const capitole: Meta[] = [
     nr: 3,
     slug: 'variabile',
     scurt: 'Variabilele',
-    rezumat: 'Ce înseamnă fiecare dintre cele 34 de coloane și ce valori are la normal și la atac.',
-    scripturi: ['01_cap1-7_statistici_corelatii.py'],
+    rezumat: 'Ce înseamnă fiecare coloană din date și ce valori are la normal și la atac.',
+    scripturi: [], // descrierile vin din specificația MQTT; exemplele normal/atac le calculează 01 (pagina „Codul complet”)
     continut: c03,
   },
   {
@@ -58,73 +62,100 @@ export const capitole: Meta[] = [
     slug: 'formule',
     scurt: 'Formule',
     rezumat: 'Toate formulele folosite, fiecare cu un exemplu calculat pe datele noastre.',
-    scripturi: ['01_cap1-7_statistici_corelatii.py'],
+    scripturi: [], // fiecare formulă e calculată în capitolul unde e folosită (6-11), cu codul acolo
     continut: c04,
   },
   {
     nr: 5,
     slug: 'descriptiva',
     scurt: 'Statistică descriptivă',
-    rezumat: 'Tipul fiecărei variabile, normalitatea, valorile extreme și distribuția fiecăreia.',
+    rezumat: 'Cum arată fiecare variabilă: ce tip are, ce valori ia, ce valori ies din tipar.',
     scripturi: ['01_cap1-7_statistici_corelatii.py', '08_grafice_restul.py'],
+    fragmente: {
+      '01_cap1-7_statistici_corelatii.py': { titlu: 'Coloanele constante, mediana, asimetria, valorile extreme', linii: [[17, 22], [30, 35], [40, 41], [44, 75]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '08_grafice_restul.py': { titlu: 'Graficele: procentul de pachete pentru fiecare valoare', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [88, 113]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
+    },
     continut: c05,
   },
   {
     nr: 6,
     slug: 'pe-categorii',
     scurt: 'Statistică pe categorii',
-    rezumat: 'Cum diferă fiecare variabilă între cele 6 clase: χ², Kruskal-Wallis, Mann-Whitney.',
+    rezumat: 'Arată fiecare variabilă altfel la atacuri decât la traficul normal? Teste pe cele 6 clase.',
     scripturi: ['01_cap1-7_statistici_corelatii.py', '08_grafice_restul.py'],
+    fragmente: {
+      '01_cap1-7_statistici_corelatii.py': { titlu: 'Tabelul pe clase și testele (Kruskal-Wallis, χ², Mann-Whitney)', linii: [[17, 22], [77, 125]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '08_grafice_restul.py': { titlu: 'Graficele pe clase (boxplot și procente, cu stele)', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [116, 213]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
+    },
     continut: c06,
   },
   {
     nr: 7,
     slug: 'corelatii',
     scurt: 'Corelații',
-    rezumat: 'Ce variabile se mișcă împreună, pe tot setul și separat pe fiecare clasă.',
-    scripturi: ['01_cap1-7_statistici_corelatii.py', '07_grafice_corelatie.py', '08_grafice_restul.py'],
-    grafice: [{ id: 'corelatii', dupa: 'corr_tot.png' }],
+    rezumat: 'Care variabile cresc și scad împreună, pe tot setul și separat pe fiecare clasă.',
+    scripturi: ['01_cap1-7_statistici_corelatii.py', '02_cap7-9_regresii_logistica.py', '07_grafice_corelatie.py', '08_grafice_restul.py'],
+    fragmente: {
+      '01_cap1-7_statistici_corelatii.py': { titlu: 'Corelațiile Spearman și Pearson pe tot setul', linii: [[17, 22], [24, 29], [132, 170]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '02_cap7-9_regresii_logistica.py': { titlu: 'Corelațiile pe fiecare clasă', linii: [[17, 52]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '08_grafice_restul.py': { titlu: 'Graficul Pearson față de Spearman (7.4)', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [214, 242]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
+    },
+    grafice: [{ id: 'corelatii', dupa: 'Între numerice, tcp.len și mqtt.len' }],
     continut: c07,
   },
   {
     nr: 8,
     slug: 'regresie-liniara',
     scurt: 'Regresie liniară',
-    rezumat: 'Se poate prezice o lungime din alta? Trei regresii, cu toate condițiile verificate.',
+    rezumat: 'Din mărimea unui pachet putem afla lungimea mesajului MQTT din el? La traficul normal da, la atacuri nu.',
     scripturi: ['02_cap7-9_regresii_logistica.py', '05_cap8-9_cook_durbin_watson.py', '08_grafice_restul.py'],
+    fragmente: {
+      '02_cap7-9_regresii_logistica.py': { titlu: 'Regresiile liniare 1-3', linii: [[17, 26], [54, 94]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '05_cap8-9_cook_durbin_watson.py': { titlu: 'Testul Durbin-Watson', linii: [[19, 26], [66, 72]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '08_grafice_restul.py': { titlu: 'Graficele regresiei liniare', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [243, 349]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
+    },
     continut: c08,
   },
   {
     nr: 9,
     slug: 'regresie-logistica',
     scurt: 'Regresie logistică',
-    rezumat: 'Probabilitatea ca un pachet să fie atac; separarea perfectă și regresia Firth.',
+    rezumat: 'Cât de probabil e ca un pachet să fie atac, după valorile lui.',
     scripturi: ['02_cap7-9_regresii_logistica.py', '03_cap9_probabilitati.py', '04_cap9_firth.py', '05_cap8-9_cook_durbin_watson.py', '08_grafice_restul.py'],
+    fragmente: {
+      '02_cap7-9_regresii_logistica.py': { titlu: 'VIF și regresia logistică', linii: [[17, 26], [34, 35], [95, 134]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '03_cap9_probabilitati.py': { titlu: 'Probabilitățile prezise și tabelul 9.2', linii: [[16, 44]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '05_cap8-9_cook_durbin_watson.py': { titlu: 'Distanța Cook', linii: [[19, 64]], rulare: 'python cod.py mqttdataset_reduced.csv.zip cook.npy' },
+      '08_grafice_restul.py': { titlu: 'Graficele regresiei logistice', linii: [[20, 31], [33, 35], [37, 39], [42, 86], [350, 419]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice cook.npy' },
+    },
     continut: c09,
   },
   {
     nr: 10,
     slug: 'arbori',
     scurt: 'Arbori de decizie',
-    rezumat: 'Arbori ctree: 95,2% pachete de test recunoscute corect, cu 15 reguli simple.',
+    rezumat: 'Un arbore de decizie care spune corect „atac” sau „normal” la 95,1% din pachete.',
     scripturi: ['09_cap10_arbori_ctree.R', '10_grafice_arbori.py'],
-    grafice: [{ id: 'arbore', dupa: 'arbore_clasificare.png' }, { id: 'confuzie', dupa: 'Atac real' }],
+    grafice: [{ id: 'arbore', dupa: 'Fiecare nod arată numărul lui' }, { id: 'confuzie', dupa: 'Atac real' }],
     continut: c10,
   },
   {
     nr: 11,
     slug: 'reguli',
     scurt: 'Reguli de asociere',
-    rezumat: 'Apriori: combinațiile de valori care anunță fiecare atac, cu confidence de cel puțin 0,96.',
+    rezumat: 'Combinațiile de valori care anunță fiecare atac, sigure în cel puțin 96% din cazuri.',
     scripturi: ['06_cap11_reguli_asociere.py', '08_grafice_restul.py'],
-    grafice: [{ id: 'reguli', dupa: '11.4 Regulile pentru fiecare atac' }],
+    fragmente: {
+      '08_grafice_restul.py': { titlu: 'Graficul regulilor (support și confidence)', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [420, 506]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
+    },
+    grafice: [{ id: 'reguli', dupa: 'Atac' }], // după tabelul cu primele 3 reguli pe atac (11.4)
     continut: c11,
   },
   {
     nr: 12,
     slug: 'literatura',
     scurt: 'Comparație cu literatura',
-    rezumat: 'Rezultatele noastre față de cele cinci articole: date, variabile, metode, accuracy.',
+    rezumat: 'Rezultatele noastre puse lângă cele din cele cinci articole.',
     scripturi: [],
     continut: c12,
   },
@@ -132,17 +163,9 @@ export const capitole: Meta[] = [
     nr: 13,
     slug: 'concluzie',
     scurt: 'Concluzie',
-    rezumat: 'Pentru fiecare atac, variabilele care îl deosebesc de traficul normal.',
-    scripturi: ['01_cap1-7_statistici_corelatii.py'],
+    rezumat: 'Pentru fiecare atac: valorile după care îl recunoști.',
+    scripturi: [], // tabelul adună rezultatele din cap. 5, 6 și 9-11; codul e la capitolele acelea
     continut: c13,
-  },
-  {
-    nr: 14,
-    slug: 'bibliografie',
-    scurt: 'Bibliografie',
-    rezumat: 'Setul de date, articolele, metodele și programele folosite.',
-    scripturi: [],
-    continut: c14,
   },
 ]
 

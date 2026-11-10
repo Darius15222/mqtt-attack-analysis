@@ -7,9 +7,10 @@ const adresaImagine = (fisier: string) => `${import.meta.env.BASE_URL}img/${fisi
 // „reg1_reziduuri.png” → „reg1 reziduuri” (folosit ca legendă când imaginea nu are una)
 const numeLizibil = (fisier: string) => fisier.replace(/\.png$/, '').replace(/_/g, ' ')
 
-type ImagineProps = { src: string; legenda?: string; mic?: boolean } // mic = în galerie, fără spațiu vertical în plus
+// mic = în galerie, fără spațiu vertical în plus; latime/inaltime = dimensiunea PNG-ului, ca pagina să nu sară la încărcare
+type ImagineProps = { src: string; legenda?: string; latime: number; inaltime: number; mic?: boolean }
 
-export default function Imagine({ src, legenda, mic }: ImagineProps) {
+export default function Imagine({ src, legenda, latime, inaltime, mic }: ImagineProps) {
   const [marita, setMarita] = useState(false)
   const text = legenda || numeLizibil(src)
 
@@ -26,7 +27,7 @@ export default function Imagine({ src, legenda, mic }: ImagineProps) {
         onClick={() => setMarita(true)}
         className="group block w-full cursor-zoom-in overflow-hidden rounded-lg border border-line bg-white p-2 transition hover:border-cyan/60 hover:shadow-[0_0_24px_-6px] hover:shadow-cyan/40"
       >
-        <img src={adresaImagine(src)} alt={text} loading="lazy" className="mx-auto h-auto max-w-full" />
+        <img src={adresaImagine(src)} alt={text} width={latime} height={inaltime} loading="lazy" className="mx-auto h-auto max-w-full" />
       </button>
       <figcaption className="mt-1.5 font-mono text-[11px] text-muted">{text}</figcaption>
       {marita && (

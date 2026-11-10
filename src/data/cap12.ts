@@ -4,8 +4,43 @@ const date: Capitol = {
  "titlu": "12. Comparație cu literatura",
  "blocuri": [
   {
+   "tip": "parte",
+   "fel": "context",
+   "titlu": "Ce facem și de ce"
+  },
+  {
    "tip": "text",
-   "text": "Cele cinci articole din capitolul 2 folosesc același set de date. Comparăm ce date și clase au folosit, ce variabile au păstrat, ce metodă au aplicat și ce rezultat raportează cu ce am făcut noi."
+   "text": "Din capitolele 5-11 avem rezultatele noastre. Cele cinci articole din capitolul 2 folosesc același set de date, deci putem verifica dacă ajung la aceleași concluzii. Comparăm ce date și clase au folosit, ce variabile au păstrat, ce metodă au aplicat și ce rezultat raportează cu ce am făcut noi."
+  },
+  {
+   "tip": "text",
+   "text": "Termenii din tabele:"
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "Random Forest, ExtraTrees, AdaBoost și XGBoost combină mulți arbori;",
+    "KNN clasifică un pachet după pachetele cele mai asemănătoare;",
+    "stacking, voting și bagging sunt moduri de a combina predicțiile mai multor modele;",
+    "grid search alege parametrii încercând toate combinațiile dintr-o listă, iar validarea încrucișată verifică fiecare combinație pe mai multe împărțiri ale datelor;",
+    "recall este același lucru cu Sensitivity din 10.5 (cât din clasa respectivă este prins)."
+   ]
+  },
+  {
+   "tip": "parte",
+   "fel": "ipoteza",
+   "titlu": "Scopul"
+  },
+  {
+   "tip": "text",
+   "text": "Vrem să vedem dacă rezultatele noastre se potrivesc cu ale altor lucrări pe aceleași date și, unde diferă, de ce."
+  },
+  {
+   "tip": "parte",
+   "fel": "pasi",
+   "titlu": "Pașii"
   },
   {
    "tip": "pas",
@@ -17,19 +52,29 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "calcul",
    "eticheta": "Calcul",
-   "text": "pentru fiecare articol am extras datele și clasele, variabilele alese, metoda și cel mai bun rezultat raportat, apoi le-am pus lângă rezultatele noastre din capitolele 7, 10 și 13."
+   "text": "pentru fiecare articol am extras datele și clasele, variabilele alese, metoda și cel mai bun rezultat raportat, apoi le-am pus lângă rezultatele noastre din capitolele 7, 10, 11 și 13."
   },
   {
    "tip": "pas",
    "fel": "iesire",
    "eticheta": "Ieșire",
-   "text": "tabelul de mai jos și observațiile de sub el."
+   "text": "tabelele din Demonstrație și observațiile din Concluzie."
   },
   {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
    "text": "comparăm doar ce scrie în articole, fără să refacem modelele lor. Cifrele nu se compară una la una, pentru că articolele folosesc alte clase, alte variabile și altă împărțire a datelor; de aceea comparăm mai ales variabilele și metoda."
+  },
+  {
+   "tip": "parte",
+   "fel": "demonstratie",
+   "titlu": "Demonstrația"
+  },
+  {
+   "tip": "text",
+   "eticheta": "Ce au făcut articolele, față de noi",
+   "text": ""
   },
   {
    "tip": "tabel",
@@ -78,10 +123,10 @@ const date: Capitol = {
     ],
     [
      "Lucrarea de față",
-     "MQTTset redus; 6 clase la statistică și reguli, 2 clase la regresia logistică și arbore; 70% / 30% doar la arbori, separat pe fiecare clasă",
+     "MQTTset redus; 6 clase la statistică și reguli, 2 clase la regresia logistică și arbore; toate pachetele, fără împărțire",
      "7 la arbore: tcp.flags, mqtt.msgtype, tcp.len, tcp.time_delta, mqtt.qos, mqtt.dupflag, mqtt.ver, alese după testele din capitolul 6 și corelațiile Spearman din capitolul 7",
      "teste statistice, regresii, arbore cu test statistic la fiecare împărțire (5 niveluri, 15 frunze), reguli de asociere",
-     "arbore: accuracy 0,9524, F1 0,9504; pentru fiecare atac, o regulă cu confidence de cel puțin 0,96"
+     "arbore: accuracy 0,9514, F1 0,9494; pentru fiecare atac, o regulă cu confidence de cel puțin 0,96"
     ]
    ]
   },
@@ -142,8 +187,8 @@ const date: Capitol = {
      "70% / 30%",
      "80% / 20%",
      "nu apare în rezumat",
-     "70% / 30% doar la arbori, separat pe fiecare clasă",
-     "Efect mic: setul de test are zeci de mii de pachete în toate cazurile."
+     "fără împărțire: arborele e construit și verificat pe toate pachetele",
+     "Verificat pe pachetele din care a fost construit, un arbore poate ieși puțin mai bun; cu frunze de cel puțin 300 de pachete, efectul e mic."
     ],
     [
      "Echilibrarea claselor",
@@ -159,25 +204,25 @@ const date: Capitol = {
      "accuracy și, pe fiecare clasă, precision, recall, F1",
      "accuracy",
      "accuracy și F1 pe clasa atac",
-     "Accuracy și F1 nu sunt aceeași măsură; de aceea comparăm accuracy cu accuracy (0,9629 față de 0,9524)."
+     "Accuracy și F1 nu sunt aceeași măsură; de aceea comparăm accuracy cu accuracy (0,9629 față de 0,9514)."
     ]
    ]
   },
   {
-   "tip": "text",
-   "eticheta": "Ce arată",
-   "text": ""
+   "tip": "parte",
+   "fel": "concluzie",
+   "titlu": "Concluzia"
   },
   {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "Variabilele: aceleași variabile apar în toate lucrările. Din cele 7 variabile ale arborelui nostru, 5 (tcp.flags, tcp.time_delta, tcp.len, mqtt.qos, mqtt.dupflag) sunt și în setul de 10 al lui Al Hanif și Ilyas. Choi și Cho folosesc lungimea TCP, tipul mesajului și keep alive, adică exact variabilele care în capitolul 13 deosebesc dos și bruteforce (mqtt.msgtype) și slowite (mqtt.kalive = 65.535).",
-    "Ce am exclus noi și ei au păstrat: mqtt.msg și mqtt.msgid, care sunt conținutul mesajului și un număr de ordine, nu măsurători (secțiunea 5), și mqtt.len și mqtt.hdrflags, pe care le-am scos ca redundante (corelația 0,94 cu tcp.len; hdrflags pune la un loc tipul mesajului, QoS și dupflag). La ei, trecerea de la 33 la 10 variabile nu schimbă accuracy (0,9629); la noi, excluderile nu schimbă F1 (0,9505 față de 0,9504, secțiunea 10.2). Ambele rezultate arată că multe variabile din set sunt de prisos.",
-    "Metoda de alegere a variabilelor: Al Hanif și Ilyas folosesc corelația Pearson și importanța din modele. Noi am folosit Spearman, pentru că variabilele nu au distribuție normală și au valori extreme (secțiunea 7); la tcp.len cu mqtt.len diferența este mare: Pearson 0,274, Spearman 0,939. Imran et al. folosesc tot corelația, dar ca să micșoreze timpul de antrenare, nu ca să explice atacurile.",
-    "Rezultatul, la aceeași formă a problemei (2 clase, 70% / 30%, setul redus): arborele lui Al Hanif și Ilyas ajunge la accuracy 0,9629, al nostru la 0,9524, cu aproximativ 1 punct procentual mai puțin (1,05). Arborele lor nu are limită de adâncime și folosește mqtt.msg și mqtt.msgid; al nostru are 5 niveluri și 15 frunze, care se citesc direct ca reguli (10.4).",
-    "Aceeași limită la dos: la 3 clase, recall-ul la dos este între 0,91 și 0,92 la toate modelele lui Al Hanif și Ilyas, inclusiv la combinațiile de modele. Arborele nostru prinde 91,1% din pachetele dos (8,9% ratate, 10.5), iar cele ratate sunt mai ales pachete care sunt doar ACK. Pare o limită a datelor, nu a modelului: un pachet ACK de la dos arată la fel ca unul normal.",
+    "Variabilele: în lucrările care își numesc variabilele (Al Hanif și Ilyas, Choi și Cho) apar multe dintre variabilele noastre. Din cele 7 variabile ale arborelui nostru, 5 (tcp.flags, tcp.time_delta, tcp.len, mqtt.qos, mqtt.dupflag) sunt și în setul de 10 al lui Al Hanif și Ilyas. Choi și Cho folosesc lungimea TCP, tipul mesajului și keep alive, adică variabilele care în capitolul 13 indică dos și flood (tcp.len), dos și bruteforce (mqtt.msgtype) și slowite (mqtt.kalive = 65.535).",
+    "Ce am exclus noi și ei au păstrat: mqtt.msg și mqtt.msgid, care sunt conținutul mesajului și un număr de ordine, nu măsurători (secțiunea 5), și mqtt.len și mqtt.hdrflags, pe care le-am scos ca redundante (corelația 0,94 cu tcp.len; hdrflags pune la un loc tipul mesajului, QoS și dupflag). La ei, trecerea de la 33 la 10 variabile nu schimbă accuracy (0,9629); la noi, excluderile nu schimbă F1 (0,9494 în ambele cazuri, secțiunea 10.2). Ambele rezultate arată că multe variabile din set sunt de prisos.",
+    "Metoda de alegere a variabilelor: Al Hanif și Ilyas folosesc corelația Pearson și importanța din modele. Noi am folosit Spearman, pentru că variabilele nu au distribuție normală și au valori extreme (secțiunea 7); la tcp.len cu mqtt.len diferența este mare: Pearson 0,274, Spearman 0,939. Imran et al. folosesc tot corelația, dar ca să micșoreze timpul de predicție, nu ca să explice atacurile.",
+    "Rezultatul, tot cu 2 clase pe setul redus: arborele lui Al Hanif și Ilyas ajunge la accuracy 0,9629 pe cele 30% din pachete păstrate pentru test, al nostru la 0,9514 pe toate pachetele, cu aproximativ 1 punct procentual mai puțin (1,15). Arborele lor nu are limită de adâncime și folosește mqtt.msg și mqtt.msgid; al nostru are 5 niveluri și 15 frunze, care se citesc direct ca reguli (10.4).",
+    "Aceeași limită la dos: la 3 clase, recall-ul la dos este între 0,91 și 0,92 la toate modelele lui Al Hanif și Ilyas, inclusiv la combinațiile de modele. Arborele nostru recunoaște ca atac 91,1% din pachetele dos (8,9% ratate, 10.5). Măsura nu este identică (la noi dos trebuie recunoscut doar ca atac, nu și ca dos), dar ordinea de mărime este aceeași, iar cele ratate sunt mai ales pachete care sunt doar ACK. Pare o limită a datelor, nu a modelului: un pachet ACK de la dos arată la fel ca unul normal.",
     "Doar Choi și Cho trec mult peste (99,97%). Ei folosesc indexul portului sursă, care leagă pachetele aceleiași conexiuni, și un model care lucrează pe secvențe. Setul redus nu are porturi, deci noi analizăm fiecare pachet separat. Rezultatul lor sugerează că pachetele pe care noi nu le putem deosebi (doar ACK) devin recognoscibile când se ține cont de conexiune.",
     "Prabhugaonkar et al. au alt scop (antrenarea modelelor fără ca datele să fie adunate într-un singur loc), deci nu se compară direct cu noi."
    ]

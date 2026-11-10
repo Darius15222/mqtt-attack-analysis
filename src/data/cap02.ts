@@ -4,14 +4,19 @@ const date: Capitol = {
  "titlu": "2. Articole",
  "blocuri": [
   {
+   "tip": "parte",
+   "fel": "context",
+   "titlu": "Ce facem și de ce"
+  },
+  {
    "tip": "text",
-   "text": "Toate cele cinci articole folosesc MQTTset și citează articolul original (Vaccari et al., 2020) în lista de referințe."
+   "text": "Căutăm articole care au analizat tot MQTTset, ca să ne comparăm rezultatele cu ale lor (capitolul 12)."
   },
   {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "am ales articole care folosesc același dataset, ca rezultatele lor să se poată compara cu ale noastre (capitolul 12). Toate construiesc modele care detectează atacurile (clasificatori de învățare automată sau rețele neuronale). Trei dintre ele (Imran et al. și cele două articole Al Hanif și Ilyas) aleg variabilele și cu ajutorul corelației, ca în capitolul 7. Imran et al. folosește printre modele și regresia logistică; niciunul nu folosește regresia liniară."
+   "text": "cinci articole care folosesc MQTTset și citează articolul original (Vaccari et al., 2020). Toate construiesc modele care recunosc atacurile; trei (Imran et al. și cele două articole Al Hanif și Ilyas) aleg variabilele și după corelație, ca în capitolul 7. Doar Imran et al. folosește și regresia logistică; niciunul regresia liniară."
   },
   {
    "tip": "lista",

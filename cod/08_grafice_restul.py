@@ -10,7 +10,8 @@ Intrări:
   3. fișierul .npy cu distanțele Cook, scris de 05_cap8-9_cook_durbin_watson.py
 
 Ieșiri:
-  imageN.png în folderul de ieșire (N = numărul figurii din document);
+  imaginile PNG în folderul de ieșire, cu numele din document (desc_<variabilă>.png,
+  test_<variabilă>.png, reg1_scatter.png, ...);
   la ecran: testele Mann-Whitney din cap. 6 și P(atac) la tcp.time_delta = 0.
 
 Rulare:
@@ -88,15 +89,12 @@ def stele(p):
 # Cap. 5: distribuția fiecărei variabile (bare cu % din pachete)
 # ---------------------------------------------------------------------------
 
-FIGURI_CAP5 = {
-    2: "mqtt.conack.flags", 3: "mqtt.conack.val", 4: "mqtt.conflag.cleansess",
-    5: "mqtt.conflag.passwd", 6: "mqtt.conflag.uname", 7: "mqtt.conflags",
-    8: "mqtt.dupflag", 9: "mqtt.hdrflags", 12: "mqtt.msgtype", 13: "mqtt.proto_len",
-    14: "mqtt.protoname", 15: "mqtt.qos", 16: "mqtt.retain", 17: "mqtt.ver", 18: "tcp.flags",
-}
+FIGURI_CAP5 = [
+    "mqtt.conack.flags", "mqtt.conack.val", "mqtt.conflag.cleansess", "mqtt.conflag.passwd", "mqtt.conflag.uname", "mqtt.conflags", "mqtt.dupflag", "mqtt.hdrflags", "mqtt.msgtype", "mqtt.proto_len", "mqtt.protoname", "mqtt.qos", "mqtt.retain", "mqtt.ver", "tcp.flags",
+]
 
 
-def figura_distributie(numar_figura, coloana):
+def figura_distributie(coloana):
     procente = date[coloana].value_counts(normalize=True) * 100
     # peste 10 valori distincte: primele 10, restul adunate în „Altele”
     if len(procente) > 10:
@@ -108,25 +106,20 @@ def figura_distributie(numar_figura, coloana):
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
     virgule_pe_axe(ax, si_pe_x=False)
     fig.tight_layout()
-    salveaza(fig, f"image{numar_figura}.png", 600, 420)
+    salveaza(fig, f"desc_{coloana}.png", 600, 420)
 
 
-for numar_figura, coloana in FIGURI_CAP5.items():
-    figura_distributie(numar_figura, coloana)
+for coloana in FIGURI_CAP5:
+    figura_distributie(coloana)
 
 
 # ---------------------------------------------------------------------------
 # Cap. 6: fiecare variabilă pe clase (boxplot pentru numerice, bare pentru categorice)
 # ---------------------------------------------------------------------------
 
-FIGURI_CAP6 = {
-    21: "tcp.flags", 22: "tcp.time_delta", 23: "tcp.len", 24: "mqtt.hdrflags",
-    25: "mqtt.msgtype", 26: "mqtt.dupflag", 27: "mqtt.qos", 28: "mqtt.retain",
-    29: "mqtt.len", 30: "mqtt.conflags", 31: "mqtt.conflag.cleansess",
-    32: "mqtt.conflag.passwd", 33: "mqtt.conflag.uname", 34: "mqtt.kalive",
-    35: "mqtt.protoname", 36: "mqtt.proto_len", 37: "mqtt.ver",
-    38: "mqtt.conack.flags", 39: "mqtt.conack.val",
-}
+FIGURI_CAP6 = [
+    "tcp.flags", "tcp.time_delta", "tcp.len", "mqtt.hdrflags", "mqtt.msgtype", "mqtt.dupflag", "mqtt.qos", "mqtt.retain", "mqtt.len", "mqtt.conflags", "mqtt.conflag.cleansess", "mqtt.conflag.passwd", "mqtt.conflag.uname", "mqtt.kalive", "mqtt.protoname", "mqtt.proto_len", "mqtt.ver", "mqtt.conack.flags", "mqtt.conack.val",
+]
 NUMERICE = ["tcp.time_delta", "tcp.len", "mqtt.len"]
 # variabile ordinale desenate ca bare, dar testate cu Kruskal-Wallis / Mann-Whitney, nu chi-pătrat
 ORDINALE_CU_BARE = ["mqtt.qos", "mqtt.kalive"]
@@ -205,7 +198,7 @@ def bare_pe_clase(ax, coloana):
     ax.legend(title="valoare", fontsize=7, title_fontsize=7, loc="upper left", bbox_to_anchor=(1.01, 1))
 
 
-for numar_figura, coloana in FIGURI_CAP6.items():
+for coloana in FIGURI_CAP6:
     fig, ax = plt.subplots()
     if coloana in NUMERICE:
         boxplot_pe_clase(ax, coloana)
@@ -215,7 +208,7 @@ for numar_figura, coloana in FIGURI_CAP6.items():
     virgule_pe_axe(ax, si_pe_x=False)
     fig.set_size_inches(7.8, 5.04)
     fig.tight_layout()
-    salveaza(fig, f"image{numar_figura}.png", 780, 504)
+    salveaza(fig, f"test_{coloana}.png", 780, 504)
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +234,7 @@ def figura_corelatii():
         ax.set_title(metoda.capitalize())
     bara_culori = fig.colorbar(imagine, ax=axs, shrink=0.85)
     bara_culori.ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: format_zecimale(v, 2)))
-    salveaza(fig, "image48.png", 1253, 587)
+    salveaza(fig, "corr_pearson_spearman.png", 1253, 587)
 
 
 figura_corelatii()
@@ -284,7 +277,7 @@ def figura_mqtt_len_din_tcp_len():
         virgule_pe_axe(ax)
     fig.set_size_inches(14.3, 5.46)
     fig.tight_layout()
-    salveaza(fig, "image49.png", 1430, 546)
+    salveaza(fig, "reg1_scatter.png", 1430, 546)
 
 
 def reziduuri(ax_puncte, ax_histograma, prezise, reziduu, sufix_titlu=""):
@@ -317,7 +310,7 @@ def figura_reziduuri_mqtt_len():
     reziduuri(*axs[1], model_log.fittedvalues, model_log.resid, " (logaritm)")
     fig.set_size_inches(14.3, 9.1)
     fig.tight_layout()
-    salveaza(fig, "image50.png", 1430, 910)
+    salveaza(fig, "reg1_reziduuri.png", 1430, 910)
 
 
 def figura_reziduuri_time_delta():
@@ -326,7 +319,7 @@ def figura_reziduuri_time_delta():
     reziduuri(*axs, model_timp.fittedvalues, model_timp.resid)
     fig.set_size_inches(14.3, 5.46)
     fig.tight_layout()
-    salveaza(fig, "image51.png", 1430, 546)
+    salveaza(fig, "reg2_reziduuri.png", 1430, 546)
 
 
 def figura_regresie_pe_clase():
@@ -345,7 +338,7 @@ def figura_regresie_pe_clase():
         virgule_pe_axe(ax)
     fig.set_size_inches(16.9, 9.1)
     fig.tight_layout()
-    salveaza(fig, "image52.png", 1690, 910)
+    salveaza(fig, "reg3_pe_clase.png", 1690, 910)
 
 
 figura_mqtt_len_din_tcp_len()
@@ -373,7 +366,7 @@ def figura_cook():
     ax.xaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{int(v):,}".replace(",", ".")))
     fig.set_size_inches(13, 5.2)
     fig.tight_layout()
-    salveaza(fig, "image53.png", 1300, 520)
+    salveaza(fig, "cook.png", 1300, 520)
 
 
 # modelul logistic final: is_attack ~ tcp.len + tcp.time_delta + mqtt.len
@@ -398,7 +391,7 @@ def figura_curba_probabilitate():
     virgule_pe_axe(ax)
     fig.set_size_inches(10.5, 4.8)
     fig.tight_layout()
-    salveaza(fig, "image56.png", 1050, 480)
+    salveaza(fig, "log_curba.png", 1050, 480)
     print("curve p0", probabilitate[0])
 
 
@@ -416,7 +409,7 @@ def figura_probabilitati_prezise():
     virgule_pe_axe(ax)
     fig.set_size_inches(10.5, 4.8)
     fig.tight_layout()
-    salveaza(fig, "image57.png", 1050, 480)
+    salveaza(fig, "log_prob.png", 1050, 480)
 
 
 figura_cook()
@@ -507,7 +500,7 @@ def figura_reguli():
         virgule_pe_axe(ax)
     fig.set_size_inches(18, 7.6)
     fig.tight_layout()
-    salveaza(fig, "image64.png", 1800, 760)
+    salveaza(fig, "ar_scatter.png", 1800, 760)
 
 
 figura_reguli()

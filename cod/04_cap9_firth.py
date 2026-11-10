@@ -1,8 +1,9 @@
 """
 Regresia logistică Firth (cap. 9.5 din tema MQTTset).
 
-Reproduce: coeficienții, erorile standard și statisticile Chisq
-(testul raportului de verosimilitate penalizată) pentru fiecare predictor.
+Reproduce: coeficienții, erorile standard, statisticile Chisq
+(testul raportului de verosimilitate penalizată) pentru fiecare predictor
+și testele globale (Likelihood ratio și Wald, pe toți cei 5 predictori).
 
 Intrare:  CSV-ul MQTTset (sau arhiva .zip, pandas o citește direct).
 Ieșire:   doar text la consolă.
@@ -53,8 +54,8 @@ def verosimilitate_penalizata(X, y, beta):
 def ajusteaza_firth(X, y, coef_fixat=None, max_iteratii=200):
     """Estimează coeficienții Firth prin Newton-Raphson cu înjumătățirea pasului.
 
-    coef_fixat: indicele unui coeficient ținut la 0 (pentru modelul restrâns
-    din testul Chisq). Întoarce (coeficienți, erori standard, log-verosimilitate
+    coef_fixat: indicele (sau lista de indici) coeficienților ținuți la 0
+    (pentru modelul restrâns din testele Chisq și Likelihood ratio). Întoarce (coeficienți, erori standard, log-verosimilitate
     penalizată).
 
     Pașii unei iterații:
@@ -67,7 +68,7 @@ def ajusteaza_firth(X, y, coef_fixat=None, max_iteratii=200):
     beta = np.zeros(X.shape[1])
     liber = np.ones(X.shape[1], bool)
     if coef_fixat is not None:
-        liber[coef_fixat] = False  # rămâne la valoarea de start, 0
+        liber[coef_fixat] = False  # rămân la valoarea de start, 0
 
     for _ in range(max_iteratii):
         L, p, w, informatie = verosimilitate_penalizata(X, y, beta)
@@ -108,3 +109,16 @@ print("se", np.round(erori_standard, 4))
 for j, nume in enumerate(PREDICTORI, 1):
     _, _, L_restrans = ajusteaza_firth(X, y, coef_fixat=j)
     print(nume, "chisq", round(2 * (L_complet - L_restrans), 2))
+
+# ---------------------------------------------------------------
+# 9.5 Testele globale: au predictorii, împreună, vreun efect?
+# ---------------------------------------------------------------
+# Likelihood ratio: același calcul ca la Chisq, dar cu toți cei 5 coeficienți ținuți la 0
+# (aceeași penalizare, deci rămâne doar interceptul).
+_, _, L_doar_intercept = ajusteaza_firth(X, y, coef_fixat=list(range(1, X.shape[1])))
+print("likelihood ratio", round(2 * (L_complet - L_doar_intercept), 1), "df", len(PREDICTORI))
+
+# Wald: beta' * V^-1 * beta pe coeficienții predictorilor, cu V = matricea de covarianță (I^-1).
+covarianta = np.linalg.inv(verosimilitate_penalizata(X, y, coeficienti)[3])[1:, 1:]
+beta_predictori = coeficienti[1:]
+print("wald", round(float(beta_predictori @ np.linalg.solve(covarianta, beta_predictori)), 1), "df", len(PREDICTORI))

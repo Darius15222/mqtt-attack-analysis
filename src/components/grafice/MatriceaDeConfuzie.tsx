@@ -1,4 +1,4 @@
-// Matricea de confuzie a arborelui de clasificare pe setul de test, plus metricile calculate din ea (10.5).
+// Matricea de confuzie a arborelui de clasificare pe toate pachetele, plus metricile calculate din ea (10.5).
 // Așezarea e cea din document: predicția pe rânduri, realitatea pe coloane.
 import { confuzie } from '../../data/cifre'
 import { formatNumar, formatProcent } from '../../lib/format'
@@ -33,7 +33,7 @@ const OPTIUNI = {
   tooltip: {
     formatter: (p: { dataIndex: number }) => {
       const c = CELULE[p.dataIndex]
-      return `<b>${c.cod} = ${formatNumar(c.numar)}</b><br/>${c.sens}<br/>${formatProcent(c.numar, N)} din test`
+      return `<b>${c.cod} = ${formatNumar(c.numar)}</b><br/>${c.sens}<br/>${formatProcent(c.numar, N)} din pachete`
     },
   },
   series: [
@@ -61,7 +61,7 @@ const OPTIUNI = {
 
 export default function MatriceaDeConfuzie() {
   return (
-    <Panou titlu="Matricea de confuzie, pe test" indicatie="rânduri = predicția, coloane = realitatea">
+    <Panou titlu="Matricea de confuzie" indicatie="rânduri = predicția, coloane = realitatea">
       <div className="grid gap-4 md:grid-cols-[1fr_220px]">
         <Grafic inaltime={300} optiuni={OPTIUNI} />
         <div className="grid grid-cols-2 gap-2 md:grid-cols-1">
@@ -71,7 +71,7 @@ export default function MatriceaDeConfuzie() {
                 <span className="text-xs text-muted">{m.nume}</span>
                 <span className="font-mono text-lg text-cyan">{formatNumar(m.valoare, 4)}</span>
               </div>
-              <div className="font-mono text-[10px] text-muted/70">{m.formula}</div>
+              <div className="font-mono text-[11px] text-muted">{m.formula}</div>
             </div>
           ))}
         </div>

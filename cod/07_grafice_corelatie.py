@@ -2,10 +2,10 @@
 Graficele de corelație (tema MQTTset, cap. 7.1-7.3).
 
 Reproduce:
-  - image40.png: harta corelațiilor Spearman pe tot setul;
-  - image42.png ... image47.png: aceeași hartă pe fiecare clasă
-    (legitimate, dos, bruteforce, malformed, slowite, flood);
-  - image41.png: trei diagrame de dispersie pe ranguri, cu dreapta de regresie
+  - corr_tot.png: harta corelațiilor Spearman pe tot setul;
+  - corr_<clasă>.png: aceeași hartă pe fiecare clasă
+    (corr_legitimate.png, corr_dos.png, ..., corr_flood.png);
+  - corr_scatter.png: trei diagrame de dispersie pe ranguri, cu dreapta de regresie
     și R Spearman; la consolă se afișează R și p pentru fiecare pereche.
 
 Intrare:  CSV-ul MQTTset și folderul de ieșire (trebuie să existe).
@@ -75,23 +75,23 @@ def harta_corelatie(subset, titlu, nume_fisier):
 
 
 # ---------------------------------------------------------------
-# 7.1 Corelația Spearman pe tot setul (image40)
+# 7.1 Corelația Spearman pe tot setul (corr_tot.png)
 # ---------------------------------------------------------------
 harta_corelatie(date,
                 "Corelația Spearman, variabile numerice, ordinale și binare, tot setul (gri = nu se poate calcula)",
-                "image40.png")
+                "corr_tot.png")
 
 # ---------------------------------------------------------------
-# 7.3 Corelația Spearman pe fiecare clasă (image42-image47)
+# 7.3 Corelația Spearman pe fiecare clasă (corr_<clasă>.png)
 # ---------------------------------------------------------------
 CLASE = ["legitimate", "dos", "bruteforce", "malformed", "slowite", "flood"]
-for numar_imagine, clasa in zip(range(42, 48), CLASE):
+for clasa in CLASE:
     harta_corelatie(date[date.target == clasa],
                     f"Corelația Spearman, {clasa} (gri = variabilă constantă în această clasă)",
-                    f"image{numar_imagine}.png")
+                    f"corr_{clasa}.png")
 
 # ---------------------------------------------------------------
-# 7.2 Diagrame de dispersie pe ranguri (image41)
+# 7.2 Diagrame de dispersie pe ranguri (corr_scatter.png)
 # ---------------------------------------------------------------
 # 8000 de pachete ajung pentru grafic; R și p se calculează pe tot setul.
 esantion = date.sample(8000, random_state=42)
@@ -116,5 +116,5 @@ for ax, (var_x, var_y) in zip(axe, PERECHI):
     print(var_x, var_y, R, p)
 
 fig.tight_layout()
-fig.savefig(f"{folder_iesire}/image41.png")
+fig.savefig(f"{folder_iesire}/corr_scatter.png")
 plt.close(fig)

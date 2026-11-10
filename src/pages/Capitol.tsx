@@ -1,15 +1,15 @@
 // Pagina unui capitol: antet, tab-urile „Analiza” / „Codul”, conținutul, navigarea la capitolul anterior/următor
 // și cuprinsul secțiunilor (doar pe ecrane late).
-import { useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { capitole, titluFaraNr, type Meta } from '../data/capitole'
 import Blocuri from '../components/Blocuri'
 import { idSectiune } from '../lib/sectiuni'
 import Cod from '../components/Cod'
-import { continutScript, limbajScript } from '../lib/scripturi'
+import { continutScript, limbajScript, TITLU_SCRIPT } from '../lib/scripturi'
+import { doiDigiti } from '../lib/format'
 
 type Tab = 'analiza' | 'cod'
-const doiDigiti = (n: number) => String(n).padStart(2, '0')
 
 function Antet({ capitol }: { capitol: Meta }) {
   return (
@@ -33,11 +33,23 @@ function Taburi({ capitol, activ, schimba }: { capitol: Meta; activ: Tab; schimb
     { id: 'analiza', text: 'Analiza' },
     { id: 'cod', text: `Codul (${capitol.scripturi.length})` },
   ]
+  // Săgețile stânga/dreapta trec la celălalt tab (sunt doar două), iar focusul îl urmează.
+  function laTasta(e: React.KeyboardEvent) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return
+    const urmator = activ === 'analiza' ? 'cod' : 'analiza'
+    schimba(urmator)
+    document.getElementById(`tab-${urmator}`)?.focus()
+  }
   return (
-    <div className="mt-6 flex gap-1 border-b border-line">
+    <div role="tablist" className="mt-6 flex gap-1 border-b border-line" onKeyDown={laTasta}>
       {taburi.map((tab) => (
         <button
           key={tab.id}
+          id={`tab-${tab.id}`}
+          role="tab"
+          aria-selected={activ === tab.id}
+          aria-controls="panou-capitol"
+          tabIndex={activ === tab.id ? 0 : -1}
           onClick={() => schimba(tab.id)}
           className={`-mb-px border-b-2 px-4 py-2 text-sm transition ${activ === tab.id ? 'border-cyan text-cyan' : 'border-transparent text-muted hover:text-text'}`}
         >
@@ -48,6 +60,13 @@ function Taburi({ capitol, activ, schimba }: { capitol: Meta; activ: Tab; schimb
   )
 }
 
+// Liniile alese dintr-un script (numerotate de la 1), puse cap la cap: împreună formează un program complet.
+function fragment(cod: string, intervale: [number, number][], rulare: string) {
+  const linii = cod.split('\n')
+  const bucati = intervale.map(([de, pana]) => linii.slice(de - 1, pana).join('\n').replace(/^\n+/, '').trimEnd())
+  return [`# Rulare: ${rulare}`, ...bucati].join('\n\n') + '\n'
+}
+
 function CodulCapitolului({ capitol }: { capitol: Meta }) {
   return (
     <>
@@ -55,9 +74,11 @@ function CodulCapitolului({ capitol }: { capitol: Meta }) {
         Scripturile care produc cifrele și graficele din acest capitol. Cum se rulează: pagina{' '}
         <Link to="/cod" className="text-cyan hover:underline">Codul complet</Link>.
       </p>
-      {capitol.scripturi.map((fisier) => (
-        <Cod key={fisier} cod={continutScript(fisier)} limbaj={limbajScript(fisier)} titlu={`cod/${fisier}`} />
-      ))}
+      {capitol.scripturi.map((fisier) => {
+        const parte = capitol.fragmente?.[fisier]
+        const cod = parte ? fragment(continutScript(fisier), parte.linii, parte.rulare) : continutScript(fisier)
+        return <Cod key={fisier} cod={cod} limbaj={limbajScript(fisier)} titlu={parte?.titlu ?? TITLU_SCRIPT[fisier]} />
+      })}
     </>
   )
 }
@@ -82,35 +103,55 @@ function Navigare({ anterior, urmator }: { anterior?: Meta; urmator?: Meta }) {
   )
 }
 
-function CuprinsSectiuni({ sectiuni }: { sectiuni: string[] }) {
+type Titlu = { text: string; parte: boolean } // parte = una din cele 5 părți; altfel o secțiune N.M
+
+function CuprinsSectiuni({ slug, sectiuni }: { slug: string; sectiuni: Titlu[] }) {
   function mergiLa(e: React.MouseEvent, sectiune: string) {
     e.preventDefault() // linkurile #... ar intra în conflict cu rutarea pe hash
     document.getElementById(idSectiune(sectiune))?.scrollIntoView({ behavior: 'smooth' })
   }
   return (
     <aside className="sticky top-8 hidden h-fit w-56 shrink-0 xl:block">
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted/60">Pe pagină</div>
+      <div className="mb-2 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">Pe pagină</div>
       {sectiuni.map((s) => (
-        <a key={s} href={`#${idSectiune(s)}`} onClick={(e) => mergiLa(e, s)} className="block border-l border-line py-1 pl-3 text-xs text-muted hover:border-cyan hover:text-cyan">
-          {s}
+        <a
+          key={s.text}
+          href={`#/capitol/${slug}`} // un link copiat sau deschis în tab nou duce la capitol
+          onClick={(e) => mergiLa(e, s.text)}
+          className={`block border-l border-line py-1 text-xs hover:border-cyan hover:text-cyan ${s.parte ? 'pl-3 font-semibold text-text' : 'pl-6 text-muted'}`}
+        >
+          {s.text}
         </a>
       ))}
     </aside>
   )
 }
 
-// key={slug}: la trecerea pe alt capitol, pagina se creează din nou și pornește de la tab-ul „Analiza”
+// key={slug + key}: la orice navigare (și pe același capitol, din meniu) pagina pornește de la tab-ul „Analiza”
 export default function Capitol() {
   const { slug } = useParams()
+  const { key } = useLocation()
   const index = capitole.findIndex((c) => c.slug === slug)
   if (index < 0) return <Navigate to="/" />
-  return <PaginaCapitol key={slug} index={index} />
+  return <PaginaCapitol key={slug + key} index={index} />
 }
 
 function PaginaCapitol({ index }: { index: number }) {
   const [tab, setTab] = useState<Tab>('analiza')
   const capitol = capitole[index]
-  const sectiuni = capitol.continut.blocuri.flatMap((b) => (b.tip === 'sectiune' ? [b.titlu] : []))
+  const { state, key } = useLocation()
+
+  // Un link spre o secțiune sau o referință („10.4”, „[14]”) trimite id-ul ei în state; derulăm la ea.
+  // setTimeout: Layout derulează întâi pagina sus, la schimbarea capitolului.
+  useEffect(() => {
+    const tinta = (state as { tinta?: string } | null)?.tinta
+    if (!tinta) return // linkurile cu țintă sunt doar în tab-ul „Analiza”, deci nu trebuie schimbat tab-ul
+    const temporizator = setTimeout(() => document.getElementById(tinta)?.scrollIntoView(), 50)
+    return () => clearTimeout(temporizator)
+  }, [state, key])
+  const sectiuni: Titlu[] = capitol.continut.blocuri.flatMap((b) =>
+    b.tip === 'parte' || b.tip === 'sectiune' ? [{ text: b.titlu, parte: b.tip === 'parte' }] : [],
+  )
   const areCod = capitol.scripturi.length > 0
 
   return (
@@ -118,12 +159,13 @@ function PaginaCapitol({ index }: { index: number }) {
       <article className="min-w-0 max-w-4xl flex-1">
         <Antet capitol={capitol} />
         {areCod && <Taburi capitol={capitol} activ={tab} schimba={setTab} />}
-        <div className="mt-4">
+        <div className="mt-4" id="panou-capitol" role="tabpanel" aria-labelledby={`tab-${tab}`}>
           {tab === 'analiza' ? <Blocuri blocuri={capitol.continut.blocuri} grafice={capitol.grafice} /> : <CodulCapitolului capitol={capitol} />}
         </div>
         <Navigare anterior={capitole[index - 1]} urmator={capitole[index + 1]} />
       </article>
-      {tab === 'analiza' && sectiuni.length > 0 && <CuprinsSectiuni sectiuni={sectiuni} />}
+      <title>{`${capitol.scurt} · MQTTset`}</title>
+      {tab === 'analiza' && sectiuni.length > 0 && <CuprinsSectiuni slug={capitol.slug} sectiuni={sectiuni} />}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 // Pagina „Codul complet”: cum se rulează, lista scripturilor și codul fiecăruia.
 import Cod from '../components/Cod'
-import { continutScript, limbajScript } from '../lib/scripturi'
+import { continutScript, limbajScript, TITLU_SCRIPT } from '../lib/scripturi'
 
 const SCRIPTURI = [
   { fisier: '01_cap1-7_statistici_corelatii.py', descriere: 'Clase, constante, statistici descriptive și valori extreme (IQR), tabelul pe clase, χ² pentru tcp.flags, Kruskal-Wallis, Mann-Whitney, Spearman / Pearson, exemplele din cap. 4.' },
@@ -24,13 +24,18 @@ Rscript 09_cap10_arbori_ctree.R mqttdataset_reduced.csv.zip arbori
 venv/bin/python 10_grafice_arbori.py arbori arbori`
 
 // Rutarea folosește hash-ul din adresă (#/cod), deci derulăm la script din cod, nu cu un link #id.
+// Derulează la script și îl deschide (codul pornește închis).
 function deruleazaLa(fisier: string) {
-  document.getElementById(fisier)?.scrollIntoView({ behavior: 'smooth' })
+  const sectiune = document.getElementById(fisier)
+  const cod = sectiune?.querySelector('details')
+  if (cod) cod.open = true
+  sectiune?.scrollIntoView({ behavior: 'smooth' })
 }
 
 export default function CodComplet() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-8">
+      <title>Codul complet · MQTTset</title>
       <div className="mb-2 font-mono text-xs text-muted">resurse / cod</div>
       <h1 className="text-3xl font-bold text-white">Codul complet</h1>
       <p className="mt-2 max-w-3xl text-muted">
@@ -63,7 +68,7 @@ export default function CodComplet() {
         <section key={fisier} id={fisier} className="mt-10 scroll-mt-20">
           <h2 className="font-mono text-white">{fisier}</h2>
           <p className="text-sm text-muted">{descriere}</p>
-          <Cod cod={continutScript(fisier)} limbaj={limbajScript(fisier)} titlu={`cod/${fisier}`} />
+          <Cod cod={continutScript(fisier)} limbaj={limbajScript(fisier)} titlu={TITLU_SCRIPT[fisier]} />
         </section>
       ))}
     </div>

@@ -4,8 +4,27 @@ const date: Capitol = {
  "titlu": "11. Reguli de asociere",
  "blocuri": [
   {
+   "tip": "parte",
+   "fel": "context",
+   "titlu": "Ce facem și de ce"
+  },
+  {
    "tip": "text",
-   "text": "O regulă de asociere are forma DACĂ A, ATUNCI B: pachetele care au valorile din A au des și valoarea B. A (stânga) și B (dreapta) sunt seturi de itemi, iar un item este o pereche variabilă=valoare, de exemplu tcp.flags=RST. Căutăm regulile care au un atac în dreapta, adică combinațiile de valori care anunță atacul. Formulele sunt în secțiunea 4."
+   "text": "Din capitolul 10 știm că arborele spune doar „atac” sau „normal”. Regulile de asociere spun și ce atac. O regulă de asociere are forma DACĂ A, ATUNCI B: pachetele care au valorile din A au des și valoarea B. A (stânga) și B (dreapta) sunt seturi de itemi, iar un item este o pereche variabilă=valoare, de exemplu tcp.flags=RST. Căutăm regulile care au un atac în dreapta, adică combinațiile de valori care anunță atacul. Formulele sunt în secțiunea 4."
+  },
+  {
+   "tip": "parte",
+   "fel": "ipoteza",
+   "titlu": "Scopul"
+  },
+  {
+   "tip": "text",
+   "text": "Aici nu testăm o ipoteză. Vrem, pentru fiecare atac, combinațiile de valori după care îl recunoaștem și cât de sigure sunt (confidence)."
+  },
+  {
+   "tip": "parte",
+   "fel": "pasi",
+   "titlu": "Pașii"
   },
   {
    "tip": "pas",
@@ -17,7 +36,14 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "calcul",
    "eticheta": "Calcul",
-   "text": "algoritmul Apriori găsește combinațiile de itemi care apar des (support peste un prag), apoi din ele regulile cu confidence peste un prag; pentru fiecare regulă se calculează și lift (11.2)."
+   "text": "",
+   "puncte": [
+    "11.1 fiecare pachet devine o tranzacție, o listă de itemi „variabilă=valoare”;",
+    "11.2 algoritmul Apriori găsește combinațiile de itemi care apar des (support peste un prag), apoi din ele regulile cu confidence peste un prag; pentru fiecare regulă se calculează și lift;",
+    "11.3 o rulare pe toate pachetele;",
+    "11.4 regulile pentru fiecare atac;",
+    "11.5 regulile față de arborele din capitolul 10."
+   ]
   },
   {
    "tip": "pas",
@@ -29,11 +55,26 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizii",
-   "text": "Apriori din biblioteca mlxtend (Python). O tranzacție este un pachet, pentru că setul de date nu are un identificator de conexiune sau de sesiune care să grupeze pachetele. Nu împărțim datele în construcție și test ca la arbori: regulile descriu pachetele existente, nu prezic pachete noi."
+   "text": "",
+   "puncte": [
+    "Apriori din biblioteca mlxtend (Python);",
+    "o tranzacție este un pachet, pentru că setul de date nu are un identificator de conexiune sau de sesiune care să grupeze pachetele;",
+    "folosim toate pachetele, ca la arbori."
+   ]
+  },
+  {
+   "tip": "parte",
+   "fel": "demonstratie",
+   "titlu": "Demonstrația"
   },
   {
    "tip": "sectiune",
    "titlu": "11.1 Pachetele ca tranzacții"
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ce",
+   "text": "Apriori numără combinații de valori, nu lucrează cu numere, deci fiecare pachet trebuie scris ca o listă de itemi „variabilă=valoare”."
   },
   {
    "tip": "text",
@@ -114,7 +155,9 @@ const date: Capitol = {
   },
   {
    "tip": "imagine",
-   "src": "ar_itemi.png"
+   "src": "ar_itemi.png",
+   "latime": 1500,
+   "inaltime": 1240
   },
   {
    "tip": "text",
@@ -124,6 +167,46 @@ const date: Capitol = {
   {
    "tip": "sectiune",
    "titlu": "11.2 Cum se găsesc regulile: Apriori"
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ce",
+   "text": "cu 37 de itemi există foarte multe combinații posibile; Apriori le sare pe cele care sigur sunt rare, ca să nu le numere degeaba."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Ce măsurăm la o regulă A → B",
+   "text": ""
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "support = cât din toate pachetele au și A, și B: cât de des apare regula;",
+    "confidence = din pachetele cu A, câte au și B: cât de des are regula dreptate;",
+    "lift = confidence / cât de des apare B în tot setul: peste 1 înseamnă că A face B mai probabil decât în general."
+   ]
+  },
+  {
+   "tip": "text",
+   "eticheta": "Exemplu mic",
+   "text": "5 pachete: {SYN, bruteforce}, {SYN, bruteforce}, {SYN, normal}, {ACK, normal}, {ACK, normal}. Pentru regula SYN → bruteforce:"
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "support = 2 / 5 = 0,4 (2 pachete au și SYN, și bruteforce);",
+    "confidence = 2 / 3 = 0,67 (din cele 3 pachete cu SYN, 2 sunt bruteforce);",
+    "lift = 0,67 / (2 / 5 = 0,4) = 1,67: un pachet cu SYN este bruteforce de 1,67 ori mai des decât un pachet oarecare."
+   ]
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se calculează (Apriori)",
+   "text": ""
   },
   {
    "tip": "text",
@@ -198,7 +281,7 @@ const date: Capitol = {
   },
   {
    "tip": "subtitlu",
-   "text": "Exemplu de calcul: {flags=FIN+ACK} → {target=bruteforce}"
+   "text": "Pe datele noastre: {flags=FIN+ACK} → {target=bruteforce}"
   },
   {
    "tip": "pas",
@@ -210,7 +293,12 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "calcul",
    "eticheta": "Calcul",
-   "text": "support = 3.252 / 330.926 = 0,0098; confidence = 3.252 / 4.198 = 0,775; lift = 0,775 / (14.501 / 330.926 = 0,0438) = 17,7."
+   "text": "",
+   "puncte": [
+    "support = 3.252 / 330.926 = 0,0098;",
+    "confidence = 3.252 / 4.198 = 0,775;",
+    "lift = 0,775 / (14.501 / 330.926 = 0,0438) = 17,7."
+   ]
   },
   {
    "tip": "pas",
@@ -222,7 +310,7 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "păstrăm doar regulile cu un singur item în dreapta, ca fiecare regulă să se citească „aceste valori → o valoare”. O regulă mai lungă rămâne doar dacă are confidence mai mare decât o regulă cu o parte din stânga ei și același item în dreapta. De exemplu, {qos=1} → dos are confidence 1, deci {qos=1, msgtype=PUBLISH} → dos nu mai spune nimic nou."
+   "text": "păstrăm doar regulile cu un singur item în dreapta, ca fiecare regulă să se citească „aceste valori → o valoare”. O regulă mai lungă rămâne doar dacă are confidence mai mare decât toate regulile mai scurte cu același item în dreapta și cu stânga inclusă în a ei. De exemplu, {qos=1} → dos are confidence 1, deci {qos=1, msgtype=PUBLISH} → dos nu mai spune nimic nou."
   },
   {
    "tip": "text",
@@ -230,11 +318,16 @@ const date: Capitol = {
   },
   {
    "tip": "cod",
-   "text": "import pandas as pd\nfrom mlxtend.frequent_patterns import apriori, association_rules\nitemi = pd.get_dummies(tranzactii, prefix_sep=\"=\")   # o coloană TRUE/FALSE pe item\nfrecvente = apriori(itemi, min_support=0.05, use_colnames=True)\nreguli = association_rules(frecvente, metric=\"confidence\", min_threshold=0.6)\nreguli = reguli[reguli.consequents.str.len() == 1]   # un item în dreapta"
+   "text": "import pandas as pd\nfrom mlxtend.frequent_patterns import apriori, association_rules\nitemi = pd.get_dummies(tranzactii.astype(str), prefix_sep=\"=\")   # o coloană TRUE/FALSE pe item\nfrecvente = apriori(itemi, min_support=0.05, use_colnames=True)\nreguli = association_rules(frecvente, metric=\"confidence\", min_threshold=0.6)\nreguli = reguli[reguli.consequents.apply(len) == 1]   # un item în dreapta"
   },
   {
    "tip": "sectiune",
    "titlu": "11.3 Rularea pe toate pachetele (support 0,05, confidence 0,6)"
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ce",
+   "text": "o primă rulare, cu praguri obișnuite, arată ce tipare frecvente are tot setul."
   },
   {
    "tip": "pas",
@@ -246,13 +339,27 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "support 0,05, adică cel puțin un pachet din 20, ca regulile să descrie tipare frecvente, nu cazuri izolate; confidence 0,6, ca regula să aibă dreptate la majoritatea pachetelor care îndeplinesc partea stângă."
+   "text": "",
+   "puncte": [
+    "support 0,05, adică cel puțin un pachet din 20, ca regulile să descrie tipare frecvente, nu cazuri izolate;",
+    "confidence 0,6, ca regula să aibă dreptate la majoritatea pachetelor care îndeplinesc partea stângă."
+   ]
   },
   {
    "tip": "pas",
    "fel": "iesire",
    "eticheta": "Ieșire",
-   "text": "1.861 de reguli cu un item în dreapta; după scoaterea celor redundante rămân 308: 70 cu 2 itemi, 152 cu 3, 75 cu 4 și 11 cu 5. Support este între 0,051 și 0,836, confidence între 0,60 și 1, iar lift între 0,70 și 8,51 (mediana 1,96). Cele 10 reguli cu cel mai mare lift:"
+   "text": "1.861 de reguli cu un item în dreapta; după scoaterea celor redundante rămân 308:",
+   "puncte": [
+    "70 cu 2 itemi;",
+    "152 cu 3;",
+    "75 cu 4;",
+    "11 cu 5."
+   ]
+  },
+  {
+   "tip": "text",
+   "text": "Support este între 0,051 și 0,836, confidence între 0,60 și 1, iar lift între 0,70 și 8,51 (mediana 1,96). Cele 10 reguli cu cel mai mare lift:"
   },
   {
    "tip": "tabel",
@@ -350,11 +457,26 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Ce arată",
-   "text": "regulile cu lift mare descriu atacul dos din interior: confirmările PUBACK (tcp.len 1-20, PSH+ACK, timp foarte mic) și mesajele PUBLISH cu qos = 1. dupflag=1 → qos=1 are confidence 1: mesajele retrimise au mereu qos 1. În dreapta, dintre clase apar doar legitimate (46 de reguli) și dos (20). Celelalte atacuri au fiecare sub 5% din pachete, deci nicio combinație cu ele nu ajunge la support 0,05."
+   "text": ""
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "regulile cu lift mare descriu atacul dos din interior: confirmările PUBACK (tcp.len 1-20, PSH+ACK, timp foarte mic) și mesajele PUBLISH cu qos = 1;",
+    "dupflag=1 → qos=1 are confidence 1: mesajele retrimise au mereu qos 1;",
+    "în dreapta, dintre clase apar doar legitimate (46 de reguli) și dos (20). Celelalte atacuri au fiecare sub 5% din pachete, deci nicio combinație cu ele nu ajunge la support 0,05."
+   ]
   },
   {
    "tip": "sectiune",
    "titlu": "11.4 Regulile pentru fiecare atac"
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ce",
+   "text": "la 11.3 atacurile mici nu apar, pentru că au fiecare sub 5% din pachete; aici căutăm direct regulile care se termină cu un atac."
   },
   {
    "tip": "pas",
@@ -526,11 +648,15 @@ const date: Capitol = {
   },
   {
    "tip": "imagine",
-   "src": "ar_graf.png"
+   "src": "ar_graf.png",
+   "latime": 1600,
+   "inaltime": 1080
   },
   {
    "tip": "imagine",
-   "src": "ar_scatter.png"
+   "src": "ar_scatter.png",
+   "latime": 1800,
+   "inaltime": 760
   },
   {
    "tip": "text",
@@ -542,28 +668,20 @@ const date: Capitol = {
    "text": "cele 5 atacuri au fiecare cel puțin o regulă cu confidence de cel puțin 0,96:"
   },
   {
-   "tip": "text",
-   "text": "• dos: qos=1 (54.431 de pachete) și dupflag=1 apar numai la dos; la fel, confirmările PUBACK venite foarte repede (Q1)."
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "dos: qos=1 (54.431 de pachete) și dupflag=1 apar numai la dos; la fel, confirmările PUBACK venite foarte repede (Q1).",
+    "bruteforce: mesaje CONNECT cu conținut (tcp.len 21-1460), adică cereri de conectare cu nume și parolă, și, cu confidence 0,94, conexiuni închise (FIN+ACK) cu timpul în Q3.",
+    "malformed: flagurile FIN+PSH+ACK (toate cele 738 de pachete) și RST.",
+    "slowite: pachete cu conținut, dar fără mesaj MQTT recunoscut, și SYN+ACK cu timpul în Q2.",
+    "flood: tcp.len peste 1.460, 293 de pachete, confidence 1."
+   ]
   },
   {
    "tip": "text",
-   "text": "• bruteforce: mesaje CONNECT cu conținut (tcp.len 21-1460), adică cereri de conectare cu nume și parolă, și conexiuni închise (FIN+ACK)."
-  },
-  {
-   "tip": "text",
-   "text": "• malformed: flagurile FIN+PSH+ACK (toate cele 738 de pachete) și RST."
-  },
-  {
-   "tip": "text",
-   "text": "• slowite: pachete cu conținut, dar fără mesaj MQTT recunoscut, și SYN+ACK cu timpul în Q2."
-  },
-  {
-   "tip": "text",
-   "text": "• flood: tcp.len peste 1.460, 293 de pachete, confidence 1."
-  },
-  {
-   "tip": "text",
-   "text": "Lift-ul nu se compară între atacuri: cel mai mare lift posibil este 1 / procentul atacului, adică 2,54 la dos (1 / 0,3935) și 540 la flood (1 / 0,00185). De aceea ordonăm după confidence."
+   "text": "Lift-ul nu se compară între atacuri: cel mai mare lift posibil este 1 / proporția atacului, adică 2,54 la dos (1 / 0,3935) și 540 la flood (1 / 0,00185). De aceea ordonăm după confidence."
   },
   {
    "tip": "sectiune",
@@ -571,7 +689,28 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Regulile ajung la aceleași valori ca arborele din 10.4: qos=1 → dos este și prima împărțire a arborelui, iar RST, SYN, FIN cu ACK și PSH+ACK la mesajele care nu sunt PUBLISH sau ping duc în frunzele 6, 7 și 8 (atac). Arborele spune însă doar normal sau atac, iar regulile spun și ce atac. Nici regulile nu deosebesc pachetele care sunt doar ACK: cele 306 pachete flood ACK goale nu apar în nicio regulă, la fel cum arborele le ratează în frunza 12."
+   "eticheta": "De ce",
+   "text": "verificăm dacă două metode diferite ajung la aceleași valori."
+  },
+  {
+   "tip": "text",
+   "text": "Regulile ajung la aceleași valori ca arborele din 10.4: qos=1 → dos este și prima împărțire a arborelui, iar RST, SYN, FIN cu ACK și PSH+ACK la mesajele care nu sunt PUBLISH sau ping duc în frunzele 6, 7 și 8 (atac). Arborele spune însă doar normal sau atac, iar regulile spun și ce atac. Nici regulile nu deosebesc pachetele care sunt doar ACK: cele 306 pachete flood ACK goale nu apar în nicio regulă, la fel cum arborele ratează 294 dintre ele în frunza 12."
+  },
+  {
+   "tip": "parte",
+   "fel": "concluzie",
+   "titlu": "Concluzia"
+  },
+  {
+   "tip": "lista",
+   "ordonata": false,
+   "start": 1,
+   "elemente": [
+    "Fiecare dintre cele 5 atacuri are cel puțin o regulă cu confidence de cel puțin 0,96 (11.4).",
+    "dos: qos=1 sau dupflag=1. bruteforce: mesaje CONNECT cu conținut. malformed: flagurile FIN+PSH+ACK și RST. slowite: pachete cu conținut, dar fără mesaj MQTT. flood: tcp.len peste 1.460.",
+    "Regulile ajung la aceleași valori ca arborele (11.5), dar spun și ce atac este, nu doar „atac”.",
+    "Nici regulile nu recunosc confirmările ACK goale ale atacurilor."
+   ]
   }
  ]
 }
