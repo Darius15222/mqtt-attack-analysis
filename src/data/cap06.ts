@@ -805,7 +805,7 @@ const date: Capitol = {
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "traficul normal are doar 0x00000010 (ACK) și 0x00000018 (PSH și ACK), adică pachete de confirmare și de date;",
+    "traficul normal are doar 0x00000010 (ACK) și 0x00000018 (PSH și ACK), adică pachete de confirmare și de date; dos și flood au aproape numai aceleași două valori (130.160 din 130.223 de pachete dos și 609 din 613 pachete flood), deci după tcp.flags nu se deosebesc de traficul normal;",
     "celelalte valori apar doar la atacuri: SYN și SYN+ACK la bruteforce, malformed și slowite (conexiuni noi), FIN+ACK mai ales la bruteforce (22,43%), iar RST (0x00000004), FIN+PSH+ACK și RST+ACK aproape numai la malformed."
    ]
   },
@@ -1040,7 +1040,7 @@ const date: Capitol = {
    "elemente": [
     "Toate cele 19 variabile diferă între clase (p sub 0,001, 6.2 și 6.3). Cu atâtea pachete, p iese mic și la diferențe mici, deci cât de mare e diferența se citește în tabel (6.1).",
     "Cele mai clare diferențe: mqtt.qos = 1 apare doar la dos, mqtt.kalive = 65.535 doar la slowite, iar tcp.len are valori mult mai mari la dos și flood (Q3 = 116 și 32.759, față de 13 la normal) (6.1).",
-    "tcp.flags: traficul normal are doar ACK și PSH+ACK; SYN, FIN+ACK, RST și celelalte apar doar la atacuri (6.3).",
+    "tcp.flags: traficul normal are doar ACK și PSH+ACK; SYN, FIN+ACK, RST și celelalte apar doar la atacuri, mai ales la bruteforce, malformed și slowite. Dos și flood au aproape numai ACK și PSH+ACK, ca traficul normal, deci nu se recunosc după tcp.flags (6.3).",
     "Aproape fiecare atac diferă de normal la fiecare variabilă numerică; excepția clară este flood la tcp.time_delta (6.4).",
     "Atacurile arată diferit și între ele (tabelul pe clase), deci nu le punem într-un singur grup decât acolo unde metoda o cere (7.4 și capitolele 9 și 10)."
    ]
