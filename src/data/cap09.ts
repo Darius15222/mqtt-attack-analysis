@@ -218,6 +218,16 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se calculează Firth",
+   "text": "la verosimilitate se adaugă o penalizare care crește când coeficienții se apropie de infinit, deci maximul se găsește la o valoare finită. Într-un caz simplu, este ca și cum s-ar adăuga o jumătate de pachet în fiecare căsuță a tabelului: nicio căsuță nu mai are 0, deci probabilitatea nu mai poate fi exact 1."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Exemplu",
+   "text": "3 pachete cu mqtt.qos = 1, toate atac. Fără Firth, probabilitatea de atac este 3 / 3 = 1, iar coeficientul crește la infinit. Cu Firth, ea devine 3,5 / (3,5 + 0,5) = 0,875, iar coeficientul rămâne finit."
+  },
+  {
+   "tip": "text",
    "eticheta": "Cum se calculează χ² (chi-pătrat)",
    "text": "cât de mult se strică modelul dacă scoatem variabila; cu cât e mai mare, cu atât variabila contează mai mult."
   },
