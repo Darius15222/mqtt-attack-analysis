@@ -97,11 +97,6 @@ const date: Capitol = {
      "-2 · logaritmul verosimilității; 9.4."
     ],
     [
-     "VIF",
-     "Dacă o variabilă se poate ghici din celelalte (atunci coeficienții nu sunt de încredere).",
-     "VIF = 1 / (1 - R²), cu R² al variabilei prezise din celelalte; 9.2."
-    ],
-    [
      "Regresia Firth",
      "Regresia logistică cu o penalizare pentru variabilele care apar doar la atacuri.",
      "9.3"

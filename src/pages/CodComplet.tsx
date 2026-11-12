@@ -4,7 +4,7 @@ import { continutScript, limbajScript, TITLU_SCRIPT } from '../lib/scripturi'
 
 const SCRIPTURI = [
   { fisier: '01_cap1-7_statistici_corelatii.py', descriere: 'Clase, constante, statistici descriptive și valori extreme (IQR), tabelul pe clase, χ² pentru tcp.flags, Kruskal-Wallis, Mann-Whitney, Spearman / Pearson, exemplele din cap. 4.' },
-  { fisier: '02_cap7-9_regresii_logistica.py', descriere: 'Matricile pe clase, regresiile 1-3, VIF, regresia logistică (separarea, pașii algoritmului, modelul final).' },
+  { fisier: '02_cap7-9_regresii_logistica.py', descriere: 'Matricile pe clase, regresiile 1-3, regresia logistică (separarea, pașii algoritmului, modelul final).' },
   { fisier: '03_cap9_probabilitati.py', descriere: 'Probabilitățile din 9.4, medianele din 9.1, tipurile de mesaje pe clase.' },
   { fisier: '04_cap9_firth.py', descriere: 'Regresia Firth (9.3): coeficienți, erori standard, χ².' },
   { fisier: '05_cap8-9_cook_durbin_watson.py', descriere: 'Distanța Cook și reziduurile deviance (9.2), Durbin-Watson (cap. 8).' },

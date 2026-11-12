@@ -99,7 +99,7 @@ export const capitole: Meta[] = [
     scripturi: ['01_cap1-7_statistici_corelatii.py', '02_cap7-9_regresii_logistica.py', '07_grafice_corelatie.py', '08_grafice_restul.py'],
     fragmente: {
       '01_cap1-7_statistici_corelatii.py': { titlu: 'Corelațiile Spearman și Pearson pe tot setul', linii: [[17, 22], [24, 29], [132, 170]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
-      '02_cap7-9_regresii_logistica.py': { titlu: 'Corelațiile pe fiecare clasă', linii: [[17, 52]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '02_cap7-9_regresii_logistica.py': { titlu: 'Corelațiile pe fiecare clasă', linii: [[16, 50]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
       '08_grafice_restul.py': { titlu: 'Graficul Pearson față de Spearman (7.4)', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [214, 242]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
     },
     grafice: [{ id: 'corelatii', dupa: 'aceleași 13 variabile' }],
@@ -113,7 +113,7 @@ export const capitole: Meta[] = [
     rezumat: 'Din mărimea unui pachet putem afla lungimea mesajului MQTT din el? La traficul normal da, la atacuri nu.',
     scripturi: ['02_cap7-9_regresii_logistica.py', '05_cap8-9_cook_durbin_watson.py', '08_grafice_restul.py'],
     fragmente: {
-      '02_cap7-9_regresii_logistica.py': { titlu: 'Regresiile liniare 1-3', linii: [[17, 26], [54, 94]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '02_cap7-9_regresii_logistica.py': { titlu: 'Regresiile liniare 1-3', linii: [[16, 24], [52, 92]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
       '05_cap8-9_cook_durbin_watson.py': { titlu: 'Testul Durbin-Watson', linii: [[19, 26], [66, 72]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
       '08_grafice_restul.py': { titlu: 'Graficele regresiei liniare', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [243, 349]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
     },
@@ -126,7 +126,7 @@ export const capitole: Meta[] = [
     rezumat: 'Cât de probabil e ca un pachet să fie atac, după valorile lui.',
     scripturi: ['02_cap7-9_regresii_logistica.py', '03_cap9_probabilitati.py', '04_cap9_firth.py', '05_cap8-9_cook_durbin_watson.py', '08_grafice_restul.py'],
     fragmente: {
-      '02_cap7-9_regresii_logistica.py': { titlu: 'VIF și regresia logistică', linii: [[17, 26], [34, 35], [95, 134]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '02_cap7-9_regresii_logistica.py': { titlu: 'Regresia logistică', linii: [[16, 24], [32, 33], [93, 126]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
       '03_cap9_probabilitati.py': { titlu: 'Probabilitățile prezise și medianele din 9.1', linii: [[16, 44]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
       '05_cap8-9_cook_durbin_watson.py': { titlu: 'Distanța Cook', linii: [[19, 64]], rulare: 'python cod.py mqttdataset_reduced.csv.zip cook.npy' },
       '08_grafice_restul.py': { titlu: 'Graficele regresiei logistice', linii: [[20, 31], [33, 35], [37, 39], [42, 86], [350, 419]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice cook.npy' },

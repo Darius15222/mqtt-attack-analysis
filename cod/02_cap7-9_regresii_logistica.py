@@ -1,10 +1,9 @@
-"""Corelații pe clase, regresii liniare, VIF și regresie logistică pentru MQTTset (cap. 7-9).
+"""Corelații pe clase, regresii liniare și regresie logistică pentru MQTTset (cap. 7-9).
 
 Reproduce cifrele din:
   - matricea Spearman pe tot setul și pe fiecare clasă (cap. 7);
   - verificările pe flood / tcp.len > 1460 și valorile maxime (cap. 8);
   - regresiile liniare 1-3, inclusiv variantele logaritmice (cap. 8-9);
-  - VIF pentru 5 și 3 predictori;
   - regresia logistică: modelul final cu 3 predictori, separarea modelului cu 5 predictori
     (pașii 10-30), probabilitățile prezise pe clase, medianele din 9.1, msgtype pe clase (cap. 9).
 
@@ -20,7 +19,6 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 from scipy import stats
-from statsmodels.stats.outliers_influence import variance_inflation_factor as vif
 
 date = pd.read_csv(sys.argv[1], low_memory=False)
 date["is_attack"] = (date.target != "legitimate").astype(int)
@@ -91,12 +89,6 @@ normal = date[date.target == "legitimate"]
 dreapta_normal = sm.OLS(normal["mqtt.len"], sm.add_constant(normal["tcp.len"])).fit().params
 distanta = (date["mqtt.len"] - (dreapta_normal["const"] + dreapta_normal["tcp.len"] * date["tcp.len"])).abs()
 print("R3 pe dreapta normalului (<= 2 bytes, %)", (distanta <= 2).groupby(date.target).mean().mul(100).round(1).to_dict())
-
-# --- VIF (multicoliniaritate); indicele 0 e constanta, deci pornim de la 1 ---
-X5 = sm.add_constant(date[PREDICTORI_5]).values
-print("VIF5", [round(vif(X5, i), 2) for i in range(1, 6)])
-X3 = sm.add_constant(date[PREDICTORI_3]).values
-print("VIF3", [round(vif(X3, i), 2) for i in range(1, 4)])
 
 # --- Cap. 9: regresia logistică is_attack ~ 3 predictori (modelul final) ---
 logistica3 = sm.GLM(date.is_attack, sm.add_constant(date[PREDICTORI_3]),

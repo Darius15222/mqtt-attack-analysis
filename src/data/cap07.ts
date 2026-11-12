@@ -416,7 +416,7 @@ const date: Capitol = {
    "elemente": [
     "H0 se respinge: tcp.len și mqtt.len sunt puternic legate pe ranguri (R = 0,94, p sub 0,001, 7.1). Pe valorile reale legătura este slabă (Pearson 0,274, 7.4), din cauza pachetelor flood foarte mari. Din această pereche pornește regresia 1 (8.1).",
     "tcp.time_delta are corelații slabe cu celelalte 12 variabile (cel mult 0,25). Regresia 2 (8.2) verifică dacă timpul se poate totuși prezice din lungimi.",
-    "mqtt.qos are 0,66 cu mqtt.len pe ranguri, iar pe valorile reale chiar 0,99 (Pearson, graficul din 7.4): toate cele 54.431 de pachete cu mqtt.qos = 1 sunt dos și au mqtt.len între 149 și 190, iar restul au în medie 4,7. De aici VIF-ul mare (42,5 și 42,9) de la regresia logistică (9.2).",
+    "mqtt.qos are 0,66 cu mqtt.len pe ranguri, iar pe valorile reale chiar 0,99 (Pearson, graficul din 7.4): toate cele 54.431 de pachete cu mqtt.qos = 1 sunt dos și au mqtt.len între 149 și 190, iar restul au în medie 4,7.",
     "Grupul de conectare are corelație 1 (7.1). Într-un model ar ajunge o singură variabilă din grup.",
     "Pe clase, corelația tcp.len cu mqtt.len diferă (1,00 la normal, 0,60 la slowite, 7.3). De aici regresia 3 (8.3), pe fiecare clasă."
    ]

@@ -174,15 +174,11 @@ const date: Capitol = {
      "Încălcată: pachetele aceleiași conexiuni seamănă între ele, iar datele nu spun care pachete sunt din aceeași conexiune. O notăm ca limită în Concluzie."
     ],
     [
-     "3. Absența multicoliniarității (VIF)",
-     "tcp.len 1,08, mqtt.len 42,5, tcp.time_delta 1,00, mqtt.qos 42,9, mqtt.dupflag 1,44. mqtt.len și mqtt.qos depășesc 10. Modelul final (9.4) nu are mqtt.qos și mqtt.dupflag, iar VIF devine 1,08, 1,00 și 1,08."
-    ],
-    [
-     "4. Absența separării perfecte",
+     "3. Absența separării perfecte",
      "Încălcată: mqtt.qos = 1 (54.431 de pachete) și mqtt.dupflag = 1 (18.707) apar doar la atacuri, deci din ele atacul se prezice perfect (separare cvasi-completă: valoarea 1 apare doar la atac, valoarea 0 la ambele clase). Vezi 9.3."
     ],
     [
-     "5. Absența valorilor extreme influente (distanța Cook)",
+     "4. Absența valorilor extreme influente (distanța Cook)",
      "Respectată, la modelul final (9.4). Distanța Cook arată cât s-ar schimba modelul dacă am scoate un singur pachet. Cea mai mare este 0,0197, mult sub pragul de 0,5: niciun pachet singur nu schimbă rezultatul. Graficul este sub tabel."
     ]
    ]
@@ -315,7 +311,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "De ce",
-   "text": "mqtt.qos și mqtt.dupflag separă perfect (apar doar la atacuri), iar mqtt.qos are și VIF 42,9 (9.2); fără ele, coeficienții se pot citi."
+   "text": "mqtt.qos și mqtt.dupflag separă perfect (apar doar la atacuri); fără ele, coeficienții se pot citi."
   },
   {
    "tip": "text",
@@ -373,7 +369,7 @@ const date: Capitol = {
    "elemente": [
     "tcp.len are coeficient pozitiv (0,0293): un pachet cu mai mult conținut TCP are probabilitate mai mare să fie atac. La fel mqtt.len (0,0048);",
     "tcp.time_delta are coeficient negativ (-3,34): cu cât trece mai puțin timp de la pachetul anterior, cu atât crește probabilitatea de atac. Se potrivește cu medianele din 9.1 (1,2e-05 la atac față de 7,6e-05 la normal);",
-    "semnul lui mqtt.len se schimbă între modelul cu toate variabilele (-0,287) și cel final (0,0048). Este efectul multicoliniarității: mqtt.len și mqtt.qos spun aproape același lucru (corelația Pearson 0,99, 7.4; VIF = 42,5 în modelul cu 5 variabile), așa că modelul cu amândouă împarte efectul între ele, chiar cu semn schimbat."
+    "semnul lui mqtt.len se schimbă între modelul cu toate variabilele (-0,287) și cel final (0,0048). Motivul: mqtt.len și mqtt.qos spun aproape același lucru (corelația Pearson 0,99, 7.4), așa că modelul cu amândouă împarte efectul între ele, chiar cu semn schimbat."
    ]
   },
   {
