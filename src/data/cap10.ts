@@ -10,7 +10,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Din capitolul 9 știm că regresia logistică nu poate folosi variabilele categorice (de exemplu tcp.flags) și pe cele care separă perfect (mqtt.qos). Un arbore de decizie le folosește direct: împarte pachetele în grupuri tot mai omogene, prin întrebări simple de tipul „tcp.len ≤ 20?”. Fiecare grup final (frunză) dă o predicție: clasa majoritară la clasificare, media la regresie. Am construit doi arbori: unul care prezice dacă un pachet este atac (is_attack) și unul care prezice tcp.len."
+   "text": "Din capitolul 9 știm că regresia logistică nu poate folosi variabilele categoriale (de exemplu tcp.flags) și pe cele care separă perfect (mqtt.qos). Un arbore de decizie le folosește direct: împarte pachetele în grupuri tot mai omogene, prin întrebări simple de tipul „tcp.len ≤ 20?”. Fiecare grup final (frunză) dă o predicție: clasa majoritară la clasificare, media la regresie. Am construit doi arbori: unul care prezice dacă un pachet este atac (is_attack) și unul care prezice tcp.len."
   },
   {
    "tip": "parte",
@@ -69,9 +69,9 @@ const date: Capitol = {
    "eticheta": "Decizii",
    "text": "",
    "puncte": [
-    "arborii sunt construiți cu funcția ctree din pachetul R partykit, care face la fiecare nod testul statistic și corecția Bonferroni descrise în 10.1; scriptul complet este cod/09_cap10_arbori_ctree.R;",
-    "arborii se construiesc și se verifică pe toate pachetele, fără împărțire în construcție și test; verificat pe pachetele din care a fost construit, un arbore poate părea puțin mai bun decât este, dar cu frunze de cel puțin 300 de pachete diferența e mică;",
-    "pachetele din aceeași conexiune nu sunt independente (9.7), deci p-urile sunt prea optimiste; ele servesc doar la alegerea împărțirilor."
+    "arborii sunt construiți cu funcția ctree din pachetul R partykit (scriptul cod/09_cap10_arbori_ctree.R);",
+    "arborii se construiesc și se verifică pe toate pachetele; cu frunze de cel puțin 300 de pachete, un arbore verificat pe propriile date pare doar puțin mai bun decât este;",
+    "p-urile sunt prea optimiste, pentru că pachetele aceleiași conexiuni nu sunt independente (9.2); ele servesc doar la alegerea împărțirilor."
    ]
   },
   {
@@ -96,71 +96,31 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pasul 1, testul",
-   "text": "pentru fiecare predictor se calculează T și p (metoda ctree). La un predictor categoric și ținta is_attack, T = (n - 1) / n · χ² pe tabelul categorii × (normal, atac), adică practic χ². Altfel, T = (n - 1) · R², cu R² = r² Pearson la un predictor numeric sau, la un predictor categoric cu țintă numerică (arborele de regresie, 10.6), suma pătratelor dintre grupuri / suma pătratelor totală. p vine din distribuția χ² cu 1 grad de libertate (numeric) sau c - 1 (c categorii)."
+   "text": "pentru fiecare predictor se măsoară cât de legat este de țintă, cu statistica T (la variabilele categoriale este practic χ² din capitolul 6), și se calculează p."
   },
   {
    "tip": "text",
    "eticheta": "Pasul 2, Bonferroni",
-   "text": "fiecare p se ajustează cu numărul de predictori testați în nod, k: p ajustat = 1 - (1 - p)^k, practic p · k când p este mic. La rădăcină k = 7; mai jos k poate fi mai mic, pentru că un predictor cu o singură valoare în nod nu se mai testează. Fără corecție, șansa ca măcar unul din 7 teste să iasă sub 0,05 doar din întâmplare ar fi 1 - 0,95⁷ = 30%."
+   "text": "fiecare p se înmulțește aproximativ cu numărul de predictori testați în nod (7 la rădăcină). Fără corecție, din 7 teste unul ar ieși sub 0,05 doar din întâmplare în 30% din cazuri."
   },
   {
    "tip": "text",
    "eticheta": "Pasul 3, variabila",
-   "text": "dacă cel mai mic p ajustat este sub 0,05, nodul se împarte după acel predictor; altfel devine frunză. Când p-urile sunt atât de mici încât calculatorul le dă 0 (în tabelul de mai jos sunt calculate pe logaritm), ctree compară predictorii după T. Dacă pentru predictorul ales nu găsește o împărțire validă, trece la următorul: în nodul 16, tcp.flags are T cel mai mare, dar împărțirea se face după tcp.len."
+   "text": "dacă cel mai mic p ajustat este sub 0,05, nodul se împarte după acel predictor; altfel devine frunză."
   },
   {
    "tip": "text",
    "eticheta": "Pasul 4, pragul",
-   "text": "pentru predictorul ales se încearcă toate împărțirile în două ramuri (la numeric, fiecare valoare distinctă ca prag, ≤ și >; la categoric, grupări ale categoriilor) și se alege cea cu cea mai mare statistică de test între cele două ramuri."
+   "text": "pentru predictorul ales se încearcă toate împărțirile în două ramuri (de exemplu tcp.len ≤ 20 și > 20) și se alege cea care desparte cel mai bine normalul de atac."
   },
   {
    "tip": "text",
    "eticheta": "Pasul 5, oprirea",
-   "text": "pașii se repetă în fiecare ramură, până când nodul are sub 20 de pachete, o ramură ar avea sub 300 de pachete sau sub 1% din nod (minprob), ori s-a ajuns la maxdepth."
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "Parametru",
-    "Valoare",
-    "De ce"
-   ],
-   "randuri": [
-    [
-     "α",
-     "0,05",
-     "Pragul uzual, ca în capitolul 6."
-    ],
-    [
-     "Corecția p",
-     "Bonferroni: 1 - (1 - p)^k, k = predictorii testați în nod (cel mult 7 la clasificare, 4 la regresie)",
-     "Câte un test pentru fiecare predictor, la fiecare nod."
-    ],
-    [
-     "minsplit",
-     "20",
-     "Nu contează aici: cu minbucket = 300, un nod care se împarte are oricum cel puțin 600 de pachete."
-    ],
-    [
-     "minbucket",
-     "300",
-     "Cu sute de mii de pachete, aproape orice împărțire iese semnificativă, deci fără limită arborele ar face frunze din câteva pachete. Clasa cea mai mică, flood, are 613 pachete; 300 este sub acest număr, deci limita nu împiedică o frunză doar cu flood (în arborii finali flood nu are totuși una proprie)."
-    ],
-    [
-     "minprob",
-     "0,01 (valoarea implicită)",
-     "O frunză trebuie să aibă și cel puțin 1% din pachetele nodului care se împarte, deci limita este cea mai mare dintre 300 și 1% din nod: 3.309 la rădăcină, 300 în nodurile cu sub 30.000 de pachete."
-    ],
-    [
-     "maxdepth",
-     "5 la clasificare, 4 la regresie",
-     "Ales din tabelul din 10.3."
-    ]
-   ]
+   "text": "pașii se repetă în fiecare ramură, până când nicio împărțire nu mai este sigură, o ramură ar avea sub 300 de pachete (ca să nu existe reguli făcute din câteva pachete) sau s-a ajuns la adâncimea maximă (10.3)."
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "un nod cu 6 pachete: 4 au mqtt.qos = 0 (2 normale, 2 atac), iar 2 au mqtt.qos = 1 (ambele atac)."
   },
   {
@@ -184,77 +144,8 @@ const date: Capitol = {
    "text": "toate cele 330.926 de pachete (165.463 normale și 165.463 atac)."
   },
   {
-   "tip": "tabel",
-   "antet": [
-    "Predictor",
-    "Statistică",
-    "Valoare",
-    "df",
-    "p",
-    "p ajustat"
-   ],
-   "randuri": [
-    [
-     "mqtt.qos",
-     "T",
-     "65.146",
-     "1",
-     "1,6 · 10⁻¹⁴¹⁴⁹",
-     "1,1 · 10⁻¹⁴¹⁴⁸"
-    ],
-    [
-     "mqtt.msgtype",
-     "T",
-     "61.485",
-     "10",
-     "2,1 · 10⁻¹³³³⁵",
-     "1,5 · 10⁻¹³³³⁴"
-    ],
-    [
-     "mqtt.dupflag",
-     "T",
-     "19.828",
-     "1",
-     "1,6 · 10⁻⁴³⁰⁸",
-     "1,1 · 10⁻⁴³⁰⁷"
-    ],
-    [
-     "tcp.flags",
-     "T",
-     "18.179",
-     "7",
-     "8,8 · 10⁻³⁹³⁹",
-     "6,2 · 10⁻³⁹³⁸"
-    ],
-    [
-     "tcp.len",
-     "T",
-     "7.759",
-     "1",
-     "1,6 · 10⁻¹⁶⁸⁷",
-     "1,1 · 10⁻¹⁶⁸⁶"
-    ],
-    [
-     "mqtt.ver",
-     "T",
-     "3.315",
-     "1",
-     "2,1 · 10⁻⁷²²",
-     "1,5 · 10⁻⁷²¹"
-    ],
-    [
-     "tcp.time_delta",
-     "T",
-     "2.757",
-     "1",
-     "3,3 · 10⁻⁶⁰¹",
-     "2,3 · 10⁻⁶⁰⁰"
-    ]
-   ]
-  },
-  {
    "tip": "text",
-   "text": "mqtt.qos are cel mai mic p și cea mai mare statistică T, deci rădăcina se împarte după el (în calculator toate p-urile ies 0, așa că ctree alege după T, ca la Pasul 3). mqtt.msgtype are o statistică apropiată (61.485), dar pe 10 grade de libertate, deci p mai mare. mqtt.qos are doar valorile 0 și 1, deci un singur prag (≤ 0 față de > 0), cu tabelul observat O (așteptat E = total rând · total coloană / N):"
+   "text": "mqtt.qos are cea mai mare statistică (T = 65.146; urmează mqtt.msgtype, cu 61.485), deci rădăcina se împarte după el. mqtt.qos are doar valorile 0 și 1, deci un singur prag (≤ 0 față de > 0), cu tabelul observat O (așteptat E = total rând · total coloană / N):"
   },
   {
    "tip": "tabel",
@@ -278,20 +169,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "χ² = 5.357,7 + 5.357,7 + 27.215,5 + 27.215,5 = 65.146 (fiecare termen este (O - E)² / E). ctree dă tot T = 65.146: același χ² înmulțit cu (n - 1) / n, deci practic egal. Ramura > 0 are 54.431 de pachete, toate dos: separarea perfectă din 9.4, pe care arborele o folosește direct, ca regulă."
-  },
-  {
-   "tip": "text",
-   "eticheta": "Unde schimbă Bonferroni",
-   "text": "în acești arbori, nicăieri. Fără corecție (testtype = \"Univariate\"), arborele de clasificare are aceleași 15 frunze și aceleași predicții. Cel mai mare p ajustat dintr-o împărțire este 0,00063, în nodul 21 (84.564 de pachete, aproape toate normale): se testează 2 predictori (tcp.len și tcp.time_delta), cel mai mic p este 0,000314 (tcp.len), iar 1 - (1 - 0,000314)² = 0,00063, mult sub 0,05, deci nodul se împarte."
-  },
-  {
-   "tip": "text",
-   "text": "Codul (R, pachetul partykit; scriptul complet, cu toate tabelele din capitol, este în cod/09_cap10_arbori_ctree.R):"
-  },
-  {
-   "tip": "cod",
-   "text": "library(partykit)\nctl <- ctree_control(teststat = \"quadratic\", testtype = \"Bonferroni\", mincriterion = 0.95,\n                     minsplit = 20, minbucket = 300, maxdepth = 5)\nm <- ctree(is_attack ~ tcp.flags + mqtt.msgtype + tcp.len + tcp.time_delta +\n             mqtt.qos + mqtt.dupflag + mqtt.ver, data = d, control = ctl)\ninfo_node(node_party(m))$criterion   # T și p la rădăcină (tabelul de mai sus)\npredict(m)                           # predicția fiecărui pachet (10.5)"
+   "text": "χ² = 5.357,7 + 5.357,7 + 27.215,5 + 27.215,5 = 65.146 (fiecare termen este (O - E)² / E), practic egal cu T. Ramura > 0 are 54.431 de pachete, toate dos: separarea perfectă din 9.3, pe care arborele o folosește direct, ca regulă."
   },
   {
    "tip": "sectiune",
@@ -313,13 +191,13 @@ const date: Capitol = {
    "randuri": [
     [
      "tcp.flags",
-     "categoric",
+     "categorial",
      "χ²",
      "Deosebește bruteforce, malformed și slowite (6.3, 13)."
     ],
     [
      "mqtt.msgtype",
-     "categoric",
+     "categorial",
      "χ²",
      "Tipul mesajului; tipul 4 apare aproape doar la dos (13)."
     ],
@@ -339,13 +217,13 @@ const date: Capitol = {
      "mqtt.qos",
      "numeric (0 sau 1)",
      "T = (n - 1) · r²",
-     "Valoarea 1 doar la dos (9.4)."
+     "Valoarea 1 doar la dos (9.3)."
     ],
     [
      "mqtt.dupflag",
      "binar (0 sau 1)",
      "χ²",
-     "Valoarea 1 doar la dos (9.4)."
+     "Valoarea 1 doar la dos (9.3)."
     ],
     [
      "mqtt.ver",
@@ -365,8 +243,7 @@ const date: Capitol = {
     "nu intră mqtt.len (corelația 0,94 cu tcp.len, 7.1) și nici mqtt.hdrflags (un cod care pune la un loc tipul mesajului, QoS și dupflag);",
     "nu intră restul grupului de conectare, nenul doar în pachetele de conectare, pe care le reprezintă mqtt.ver;",
     "nu intră mqtt.retain: este nenul la doar 0,04% din pachete;",
-    "verificare: cu toate cele 19 variabile neconstante, F1 este tot 0,9494, deci excluderile nu pierd informație; acel arbore pune însă la rădăcină mqtt.hdrflags, un cod hex greu de citit;",
-    "mqtt.qos (T) și mqtt.dupflag (χ²) au amândouă valorile 0 și 1: pentru o variabilă 0/1 și ținta is_attack, χ² = n · r² și T = (n - 1) · r², deci cele două teste dau practic același rezultat (la rădăcină, T = 65.146,1 și χ² = 65.146,3 pentru mqtt.qos)."
+    "verificare: cu toate cele 19 variabile neconstante, F1 este tot 0,9494, deci excluderile nu pierd informație; acel arbore pune însă la rădăcină mqtt.hdrflags, un cod hex greu de citit;"
    ]
   },
   {
@@ -388,88 +265,6 @@ const date: Capitol = {
    "tip": "text",
    "eticheta": "Regula",
    "text": "cea mai mică adâncime de la care F1 (respectiv R²) nu mai crește cu cel puțin 0,005 la nicio adâncime următoare."
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "maxdepth",
-    "Frunze",
-    "Accuracy",
-    "F1"
-   ],
-   "randuri": [
-    [
-     "2",
-     "3",
-     "0,8101",
-     "0,8386"
-    ],
-    [
-     "3",
-     "5",
-     "0,8435",
-     "0,8145"
-    ],
-    [
-     "4",
-     "9",
-     "0,9081",
-     "0,8996"
-    ],
-    [
-     "5",
-     "15",
-     "0,9514",
-     "0,9494"
-    ],
-    [
-     "6",
-     "20",
-     "0,9514",
-     "0,9494"
-    ]
-   ]
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "maxdepth (regresie)",
-    "Frunze",
-    "R²",
-    "MAE"
-   ],
-   "randuri": [
-    [
-     "2",
-     "4",
-     "0,1161",
-     "138,47"
-    ],
-    [
-     "3",
-     "8",
-     "0,1642",
-     "59,84"
-    ],
-    [
-     "4",
-     "13",
-     "0,2420",
-     "57,02"
-    ],
-    [
-     "5",
-     "17",
-     "0,2421",
-     "56,92"
-    ],
-    [
-     "6",
-     "20",
-     "0,2421",
-     "56,92"
-    ]
-   ]
   },
   {
    "tip": "imagine",
@@ -653,21 +448,11 @@ const date: Capitol = {
    "eticheta": "Ieșire",
    "text": "regulile confirmă capitolele anterioare:",
    "puncte": [
-    "mqtt.qos > 0 este numai dos (frunza 29, separarea din 9.4);",
+    "mqtt.qos > 0 este numai dos (frunza 29, separarea din 9.3);",
     "flagurile SYN, RST, FIN cu ACK și PSH+ACK la mesajele care nu sunt PUBLISH sau ping duc în frunzele 6, 7 și 8 (peste 99% atac);",
     "un tcp.time_delta foarte mic (≤ 1e-06) înseamnă aproape numai dos (frunza 11);",
     "traficul normal tipic îl formează mesajele de publicare sau ping cu tcp.len ≤ 13 (frunzele 19-23) sau cu PSH și ACK și tcp.len ≤ 20 (frunza 27), plus pachetele doar ACK cu tcp.time_delta între 1 și 20 µs (frunza 12, unde se amestecă și 11.768 de pachete dos)."
    ]
-  },
-  {
-   "tip": "text",
-   "text": "ctree împarte și noduri în care ambele ramuri prezic același lucru, de exemplu nodul 4, cu frunzele 6, 7 și 8, toate atac. Motivul: testul compară proporțiile din ramuri, nu predicțiile. În ramura cu mqtt.msgtype = 0 sunt 9 pachete normale din 13.608, în cealaltă niciunul din 45.665, iar diferența iese semnificativă. De aceea arborele are 15 frunze."
-  },
-  {
-   "tip": "pas",
-   "fel": "decizie",
-   "eticheta": "Decizie",
-   "text": "cu tcp.len împărțit manual în 0, 1-20 și 21+ (în loc de valorile brute), F1 este 0,9517 față de 0,9494. Am păstrat valorile brute: diferența e mică, iar arborele găsește singur pragul 20 (nodul 26), chiar limita aleasă manual."
   },
   {
    "tip": "sectiune",
@@ -697,7 +482,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "10 pachete, 5 atac și 5 normale; arborele prinde 4 atacuri, ratează unul și dă o alarmă falsă: TP = 4, FN = 1, FP = 1, TN = 4. Accuracy = 8 / 10 = 0,8; Sensitivity = 4 / 5 = 0,8; Precision = 4 / 5 = 0,8; F1 = 0,8."
   },
   {
@@ -814,7 +599,7 @@ const date: Capitol = {
    "puncte": [
     "când arborele spune atac, aproape mereu are dreptate (doar 1.269 de alarme false);",
     "scapă însă 14.804 atacuri, iar 95% dintre ele sunt în frunza 12: pachete doar cu ACK, pe care variabilele folosite nu le deosebesc de cele normale; de aici erorile mari la slowite și flood;",
-    "bruteforce (0,2% greșite) și malformed (7,8%), pe care regresia logistică din 9.6 nu le deosebea de pachetele normale goale, sunt recunoscute în mare parte prin tcp.flags, mqtt.msgtype și, la pachetele doar ACK, prin tcp.time_delta (frunzele 11 și 15)."
+    "bruteforce (0,2% greșite) și malformed (7,8%), pe care regresia logistică din 9.4 nu le deosebea de pachetele normale goale, sunt recunoscute în mare parte prin tcp.flags, mqtt.msgtype și, la pachetele doar ACK, prin tcp.time_delta (frunzele 11 și 15)."
    ]
   },
   {
@@ -839,8 +624,7 @@ const date: Capitol = {
    "text": "",
    "puncte": [
     "mqtt.len nu intră, pentru că este aproape aceeași informație ca ținta (corelația 0,94);",
-    "clasa intră, ca să vedem cât depinde mărimea pachetului de tipul atacului;",
-    "Bonferroni cu k = predictorii testați în nod (cel mult 4)."
+    "clasa intră, ca să vedem cât depinde mărimea pachetului de tipul atacului;"
    ]
   },
   {
@@ -880,7 +664,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Prima împărțire pune dos și flood de o parte (frunzele 17-25) și celelalte clase de cealaltă (frunzele 4-14). Flood nu are o frunză proprie: cele 613 pachete flood ajung în frunzele 17, 24 și 25 (unul în frunza 20), împreună cu dos. Pachetele flood sunt fie goale, fie foarte mari, iar de la ele vine 90% din suma pătratelor erorilor; de aceea RMSE este mult mai mare decât MAE, iar R² este doar 0,24. La dos, toate cele 23.673 de pachete cu mqtt.msgtype 3 (PUBLISH) sau 12 (PINGREQ) și doar flagul ACK au exact 1.460 bytes (frunza 22)."
+   "text": "Prima împărțire pune dos și flood de o parte (frunzele 17-25) și celelalte clase de cealaltă (frunzele 4-14). Flood nu are o frunză proprie: cele 613 pachete flood ajung în frunzele 17, 24 și 25 (unul în frunza 20), împreună cu dos. Pachetele flood sunt fie goale, fie foarte mari, iar de la ele vine 90% din suma pătratelor erorilor; de aceea RMSE este mult mai mare decât MAE, iar R² este doar 0,24."
   },
   {
    "tip": "text",
@@ -900,18 +684,12 @@ const date: Capitol = {
      "tcp.len",
      "0,075",
      "0,899"
-    ],
-    [
-     "tcp.time_delta (ca în 8.2)",
-     "tcp.len și mqtt.len",
-     "0,0014",
-     "0,0040"
     ]
    ]
   },
   {
    "tip": "text",
-   "text": "La 8.1 arborele urmează relațiile diferite din fiecare grup de pachete (normal, dos, flood), pe care o singură dreaptă nu le poate prinde. La 8.2 nici arborele nu reușește: timpul dintre pachete nu se poate prezice din lungimea lor (R² 0,0040); legătura pe ranguri din 7.4 (Spearman 0,25) este prea slabă pentru o predicție."
+   "text": "La 8.1 arborele urmează relațiile diferite din fiecare grup de pachete (normal, dos, flood), pe care o singură dreaptă nu le poate prinde."
   },
   {
    "tip": "parte",

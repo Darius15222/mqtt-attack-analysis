@@ -68,7 +68,7 @@ const date: Capitol = {
    "eticheta": "Decizii",
    "text": "",
    "puncte": [
-    "nu intră variabilele categorice (tcp.flags, mqtt.hdrflags, mqtt.msgtype, mqtt.conflags, mqtt.protoname, mqtt.conack.flags) și nici ținta: valorile lor sunt coduri, nu cantități (0x00000018 nu este „mai mult” decât 0x00000010), deci o corelație calculată pe ele ar depinde doar de cum sunt numerotate codurile; legătura lor cu clasa se măsoară cu χ² (capitolul 6);",
+    "nu intră variabilele categoriale (tcp.flags, mqtt.hdrflags, mqtt.msgtype, mqtt.conflags, mqtt.protoname, mqtt.conack.flags) și nici ținta: valorile lor sunt coduri, nu cantități (0x00000018 nu este „mai mult” decât 0x00000010), deci o corelație calculată pe ele ar depinde doar de cum sunt numerotate codurile; legătura lor cu clasa se măsoară cu χ² (capitolul 6);",
     "binarele intră, pentru că au doar două valori, iar cele două valori au sens (lipsă sau prezență)."
    ]
   },
@@ -103,7 +103,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "4 pachete, cu tcp.len 10, 12, 14, 20 și mqtt.len 8, 10, 12, 9:"
   },
   {
@@ -283,7 +283,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "4 pachete cu tcp.len 10, 12, 14, 32.000 și mqtt.len 8, 10, 12, 15. Ordinea este aceeași la amândouă, deci Spearman = 1. Pearson este doar 0,84: pachetul de 32.000 bytes stă departe de dreapta celorlalte trei."
   },
   {
@@ -399,7 +399,7 @@ const date: Capitol = {
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "tcp.len cu mqtt.len: Pearson este 0,274, față de 0,939 la Spearman. Valorile extreme (flood, cu tcp.len până la 32.768 și mqtt.len mic) trag Pearson în jos, ca în exemplul mic. r² = 0,274² = 0,075, adică exact R² din regresia liniară 1 (secțiunea 8.1);",
+    "tcp.len cu mqtt.len: Pearson este 0,274, față de 0,939 la Spearman. Valorile extreme (flood, cu tcp.len până la 32.768 și mqtt.len mic) trag Pearson în jos, ca în exemplul de mai sus. r² = 0,274² = 0,075, adică exact R² din regresia liniară 1 (secțiunea 8.1);",
     "perechile cu tcp.time_delta au Pearson aproape de 0 (-0,007 și -0,037), dar Spearman în jur de 0,25: legătura există pe ranguri, nu este liniară;",
     "față de is_attack, cea mai mare corelație o are mqtt.qos (0,444), apoi mqtt.len (0,409). La mqtt.len, Spearman este doar 0,058: la atac, mqtt.len este fie mai mic decât la normal (mediana 2 față de 10), fie mult mai mare (Q3 = 165 față de 11). Pe ranguri, cele două efecte aproape se anulează; pe valorile reale, un mqtt.len de 165 cântărește mult mai mult decât unul de 2, deci câștigă valorile mari."
    ]
@@ -416,7 +416,7 @@ const date: Capitol = {
    "elemente": [
     "H0 se respinge: tcp.len și mqtt.len sunt puternic legate pe ranguri (R = 0,94, p sub 0,001, 7.1). Pe valorile reale legătura este slabă (Pearson 0,274, 7.4), din cauza pachetelor flood foarte mari. Din această pereche pornește regresia 1 (8.1).",
     "tcp.time_delta are corelații slabe cu celelalte 12 variabile (cel mult 0,25). Regresia 2 (8.2) verifică dacă timpul se poate totuși prezice din lungimi.",
-    "mqtt.qos are 0,66 cu mqtt.len pe ranguri, iar pe valorile reale chiar 0,99 (Pearson, graficul din 7.4): toate cele 54.431 de pachete cu mqtt.qos = 1 sunt dos și au mqtt.len între 149 și 190, iar restul au în medie 4,7. De aici VIF-ul mare (42,5 și 42,9) de la regresia logistică (9.3).",
+    "mqtt.qos are 0,66 cu mqtt.len pe ranguri, iar pe valorile reale chiar 0,99 (Pearson, graficul din 7.4): toate cele 54.431 de pachete cu mqtt.qos = 1 sunt dos și au mqtt.len între 149 și 190, iar restul au în medie 4,7. De aici VIF-ul mare (42,5 și 42,9) de la regresia logistică (9.2).",
     "Grupul de conectare are corelație 1 (7.1). Într-un model ar ajunge o singură variabilă din grup.",
     "Pe clase, corelația tcp.len cu mqtt.len diferă (1,00 la normal, 0,60 la slowite, 7.3). De aici regresia 3 (8.3), pe fiecare clasă."
    ]

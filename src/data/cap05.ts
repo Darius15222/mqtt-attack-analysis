@@ -93,7 +93,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "o coloană cu valorile 0, 0, 0, 0 este constantă: toate pachetele arată la fel, deci ea nu poate deosebi un atac de un pachet normal."
   },
   {
@@ -337,7 +337,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "valorile 1, 2, 2, 3, 10: media este 3,6, m2 = 10,64, m3 = 47,23, m4 = 347,33. Asimetria simplă este 47,23 / 10,64 la puterea 1,5 = 1,36 (2,03 cu corecția de eșantion), iar kurtosis simplu este 347,33 / 10,64 la pătrat - 3 = 0,07 (4,27 cu corecția). Valoarea 10 trage coada spre dreapta, deci asimetria este pozitivă."
   },
   {
@@ -561,7 +561,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "valorile 2, 3, 3, 4, 100: media este 112 / 5 = 22,4, deși 4 din cele 5 valori sunt cel mult 4; mediana este 3, iar Q1 = 3 și Q3 = 4."
   },
   {
@@ -600,7 +600,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "valorile 2, 3, 3, 4, 100: Q1 = 3, Q3 = 4, IQR = 1, limita de sus este 4 + 1,5 · 1 = 5,5, deci 100 este extremă."
   },
   {

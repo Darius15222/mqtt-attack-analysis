@@ -3,7 +3,7 @@ Distanța Cook, reziduuri deviance, Durbin-Watson și verificarea câmpurilor �
 (tema MQTTset, cap. 8 și 9).
 
 Reproduce:
-  - cap. 9.3: distanța Cook pentru regresia logistică atac/legitim
+  - cap. 9.2: distanța Cook pentru regresia logistică atac/legitim
     (maximul, câte puncte trec de pragurile 4/n și 0,5) și reziduurile deviance;
   - cap. 8:   testul Durbin-Watson pentru cele două regresii liniare;
   - verificarea că valorile „0” din câmpurile MQTT înseamnă „câmp lipsă”
@@ -27,7 +27,7 @@ date = pd.read_csv(sys.argv[1], low_memory=False)
 fisier_cook = sys.argv[2]
 
 # ---------------------------------------------------------------
-# 9.3 Distanța Cook pentru regresia logistică
+# 9.2 Distanța Cook pentru regresia logistică
 # ---------------------------------------------------------------
 y = (date.target != "legitimate").astype(int).values
 X = sm.add_constant(date[["tcp.len", "tcp.time_delta", "mqtt.len"]]).values

@@ -6,7 +6,7 @@ Reproduce cifrele din:
   - regresiile liniare 1-3, inclusiv variantele logaritmice (cap. 8-9);
   - VIF pentru 5 și 3 predictori;
   - regresia logistică: modelul final cu 3 predictori, separarea modelului cu 5 predictori
-    (pașii 10-30), probabilitățile prezise pe clase, tabelul 9.2, msgtype pe clase (cap. 9).
+    (pașii 10-30), probabilitățile prezise pe clase, medianele din 9.1, msgtype pe clase (cap. 9).
 
 Intrare:  fișierul CSV MQTTset (merge și .zip, pandas îl citește direct).
 Ieșire:   doar text la stdout.
@@ -116,7 +116,7 @@ for nr_pasi in [10, 15, 20, 25, 30]:
           round(logistica5.deviance, 1))
 
 # Probabilitățile prezise de modelul final, pe clase.
-# „~0.42” = ponderea rândurilor cu probabilitatea ≈ 0,4235 (valoarea discutată în 9.6).
+# „~0.42” = ponderea rândurilor cu probabilitatea ≈ 0,4235 (valoarea discutată în 9.4).
 probabilitati = pd.Series(logistica3.predict(), index=date.index)
 for clasa in date.target.unique():
     p = probabilitati[date.target == clasa]
@@ -126,9 +126,9 @@ for clasa in date.target.unique():
           ">0.9", round((p > 0.9).mean(), 3),
           "~0.42", round((np.abs(p - 0.4235) < 0.005).mean(), 3))
 
-# --- Tabelul 9.2: mediana și quartilele pentru atacuri ---
+# --- 9.1: mediana și quartilele pentru atacuri ---
 atacuri = date[date.is_attack == 1]
 for coloana in ["tcp.time_delta", "tcp.len", "mqtt.len"]:
-    print("9.2", coloana, atacuri[coloana].median(), atacuri[coloana].quantile([.25, .75]).tolist())
+    print("9.1", coloana, atacuri[coloana].median(), atacuri[coloana].quantile([.25, .75]).tolist())
 
 print("msgtype by class", pd.crosstab(date["mqtt.msgtype"], date.target).to_string())

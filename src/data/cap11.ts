@@ -190,7 +190,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "5 pachete: {SYN, bruteforce}, {SYN, bruteforce}, {SYN, normal}, {ACK, normal}, {ACK, normal}. Pentru regula SYN → bruteforce:"
   },
   {
@@ -211,27 +211,17 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pasul 1",
-   "text": "fiecare item se numără; rămân itemii cu support cel puțin egal cu pragul (itemii frecvenți)."
+   "text": "se numără fiecare item; rămân cei care apar destul de des (support cel puțin egal cu pragul)."
   },
   {
    "tip": "text",
    "eticheta": "Pasul 2",
-   "text": "din itemii frecvenți se formează toate perechile (candidații); se numără și rămân perechile frecvente."
+   "text": "din itemii rămași se formează perechi, apoi grupuri de 3 și așa mai departe, păstrând doar combinațiile frecvente. O combinație se numără doar dacă toate părțile ei sunt frecvente: dacă {A, B} apare rar, {A, B, C} apare și mai rar."
   },
   {
    "tip": "text",
    "eticheta": "Pasul 3",
-   "text": "din seturile frecvente de k - 1 itemi se formează candidații cu k itemi. Un candidat se păstrează doar dacă toate subseturile lui sunt frecvente: dacă {A, B} apare rar, {A, B, C} apare și mai rar, deci nu mai trebuie numărat."
-  },
-  {
-   "tip": "text",
-   "eticheta": "Pasul 4",
-   "text": "se repetă până nu mai rămâne niciun candidat (la noi, cel mult 7 itemi, câte unul pe variabilă)."
-  },
-  {
-   "tip": "text",
-   "eticheta": "Pasul 5",
-   "text": "din fiecare set frecvent se scot regulile cu un item în dreapta și ceilalți în stânga; rămân cele cu confidence cel puțin egal cu pragul."
+   "text": "din fiecare combinație frecventă se scot regulile cu un item în dreapta; rămân cele cu confidence cel puțin egal cu pragul."
   },
   {
    "tip": "text",
@@ -277,7 +267,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Fără Apriori, la k = 2 s-ar număra toate cele 666 de perechi din cei 37 de itemi; așa se numără doar cele 153 de perechi din cei 18 itemi frecvenți. La k = 3 se numără 232 de candidați în loc de toate cele 816 triplete din cei 18 itemi. Toți cei 6 candidați de la k = 7 sunt frecvenți, iar la k = 8 nu mai există candidați, deci algoritmul se oprește."
+   "text": "Fără Apriori, la k = 2 s-ar număra toate cele 666 de perechi din cei 37 de itemi; așa se numără doar 153."
   },
   {
    "tip": "subtitlu",
@@ -310,15 +300,7 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "păstrăm doar regulile cu un singur item în dreapta, ca fiecare regulă să se citească „aceste valori → o valoare”. O regulă mai lungă rămâne doar dacă are confidence mai mare decât toate regulile mai scurte cu același item în dreapta și cu stânga inclusă în a ei. De exemplu, {qos=1} → dos are confidence 1, deci {qos=1, msgtype=PUBLISH} → dos nu mai spune nimic nou."
-  },
-  {
-   "tip": "text",
-   "text": "Codul (am verificat biblioteca pe un exemplu mic, calculat de mână: dă aceleași seturi frecvente și aceleași confidence):"
-  },
-  {
-   "tip": "cod",
-   "text": "import pandas as pd\nfrom mlxtend.frequent_patterns import apriori, association_rules\nitemi = pd.get_dummies(tranzactii.astype(str), prefix_sep=\"=\")   # o coloană TRUE/FALSE pe item\nfrecvente = apriori(itemi, min_support=0.05, use_colnames=True)\nreguli = association_rules(frecvente, metric=\"confidence\", min_threshold=0.6)\nreguli = reguli[reguli.consequents.apply(len) == 1]   # un item în dreapta"
+   "text": "păstrăm doar regulile cu un item în dreapta și scoatem regulile care nu spun nimic nou: {qos=1} → dos are deja confidence 1, deci {qos=1, msgtype=PUBLISH} → dos este în plus."
   },
   {
    "tip": "sectiune",
@@ -359,7 +341,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Support este între 0,051 și 0,836, confidence între 0,60 și 1, iar lift între 0,70 și 8,51 (mediana 1,96). Cele 10 reguli cu cel mai mare lift:"
+   "text": "Cele 10 reguli cu cel mai mare lift:"
   },
   {
    "tip": "tabel",
@@ -681,7 +663,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Lift-ul nu se compară între atacuri: cel mai mare lift posibil este 1 / proporția atacului, adică 2,54 la dos (1 / 0,3935) și 540 la flood (1 / 0,00185). De aceea ordonăm după confidence."
+   "text": "Lift-ul nu se compară între atacuri: la un atac rar poate fi mult mai mare (până la 540 la flood, față de 2,54 la dos). De aceea ordonăm după confidence."
   },
   {
    "tip": "sectiune",

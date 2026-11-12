@@ -1,5 +1,5 @@
 """
-Regresia logistică Firth (cap. 9.5 din tema MQTTset).
+Regresia logistică Firth (cap. 9.3 din tema MQTTset).
 
 Reproduce: coeficienții, erorile standard, statisticile Chisq
 (testul raportului de verosimilitate penalizată) pentru fiecare predictor
@@ -96,14 +96,14 @@ def ajusteaza_firth(X, y, coef_fixat=None, max_iteratii=200):
 
 
 # ---------------------------------------------------------------
-# 9.5 Modelul complet: coeficienți și erori standard
+# 9.3 Modelul complet: coeficienți și erori standard
 # ---------------------------------------------------------------
 coeficienti, erori_standard, L_complet = ajusteaza_firth(X, y)
 print("coef", np.round(coeficienti, 4))
 print("se", np.round(erori_standard, 4))
 
 # ---------------------------------------------------------------
-# 9.5 Chisq pe predictor: 2 * (L complet - L fără predictor)
+# 9.3 χ² pe predictor: 2 * (L complet - L fără predictor)
 # ---------------------------------------------------------------
 # Modelul restrâns ține coeficientul j la 0 (j = 0 este interceptul, deci pornim de la 1).
 for j, nume in enumerate(PREDICTORI, 1):
@@ -111,7 +111,7 @@ for j, nume in enumerate(PREDICTORI, 1):
     print(nume, "chisq", round(2 * (L_complet - L_restrans), 2))
 
 # ---------------------------------------------------------------
-# 9.5 Testele globale: au predictorii, împreună, vreun efect?
+# 9.3 Testele globale: au predictorii, împreună, vreun efect?
 # ---------------------------------------------------------------
 # Likelihood ratio: același calcul ca la Chisq, dar cu toți cei 5 coeficienți ținuți la 0
 # (aceeași penalizare, deci rămâne doar interceptul).

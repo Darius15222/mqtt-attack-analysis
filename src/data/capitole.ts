@@ -27,6 +27,8 @@ export type Meta = {
   // grafic interactiv pus după blocul care se potrivește cu `dupa`: numele unei imagini, titlul unei secțiuni,
   // un cap de tabel sau începutul unui paragraf
   grafice?: { id: IdGrafic; dupa: string }[]
+  // galeria care începe cu imaginea `prima` nu se arată pe site: o înlocuiește un grafic interactiv
+  faraGalerie?: { prima: string }
   continut: Capitol
 }
 
@@ -61,7 +63,7 @@ export const capitole: Meta[] = [
     nr: 4,
     slug: 'formule',
     scurt: 'Formule',
-    rezumat: 'Toate formulele folosite, fiecare cu un exemplu calculat pe datele noastre.',
+    rezumat: 'Termenii folosiți, fiecare într-o frază, cu formula sau secțiunea unde e explicat.',
     scripturi: [], // fiecare formulă e calculată în capitolul unde e folosită (6-11), cu codul acolo
     continut: c04,
   },
@@ -100,7 +102,8 @@ export const capitole: Meta[] = [
       '02_cap7-9_regresii_logistica.py': { titlu: 'Corelațiile pe fiecare clasă', linii: [[17, 52]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
       '08_grafice_restul.py': { titlu: 'Graficul Pearson față de Spearman (7.4)', linii: [[20, 31], [33, 34], [37, 39], [42, 86], [214, 242]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice' },
     },
-    grafice: [{ id: 'corelatii', dupa: 'Între numerice, tcp.len și mqtt.len' }],
+    grafice: [{ id: 'corelatii', dupa: 'aceleași 13 variabile' }],
+    faraGalerie: { prima: 'corr_legitimate.png' },
     continut: c07,
   },
   {
@@ -124,7 +127,7 @@ export const capitole: Meta[] = [
     scripturi: ['02_cap7-9_regresii_logistica.py', '03_cap9_probabilitati.py', '04_cap9_firth.py', '05_cap8-9_cook_durbin_watson.py', '08_grafice_restul.py'],
     fragmente: {
       '02_cap7-9_regresii_logistica.py': { titlu: 'VIF și regresia logistică', linii: [[17, 26], [34, 35], [95, 134]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
-      '03_cap9_probabilitati.py': { titlu: 'Probabilitățile prezise și tabelul 9.2', linii: [[16, 44]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
+      '03_cap9_probabilitati.py': { titlu: 'Probabilitățile prezise și medianele din 9.1', linii: [[16, 44]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },
       '05_cap8-9_cook_durbin_watson.py': { titlu: 'Distanța Cook', linii: [[19, 64]], rulare: 'python cod.py mqttdataset_reduced.csv.zip cook.npy' },
       '08_grafice_restul.py': { titlu: 'Graficele regresiei logistice', linii: [[20, 31], [33, 35], [37, 39], [42, 86], [350, 419]], rulare: 'python cod.py mqttdataset_reduced.csv.zip folder_grafice cook.npy' },
     },

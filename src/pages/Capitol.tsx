@@ -67,6 +67,12 @@ function fragment(cod: string, intervale: [number, number][], rulare: string) {
   return [`# Rulare: ${rulare}`, ...bucati].join('\n\n') + '\n'
 }
 
+// Blocurile din docx, fără galeria pe care pe site o acoperă un grafic interactiv (vezi `faraGalerie` în capitole.ts)
+function blocuriPeSite({ continut, faraGalerie }: Meta) {
+  if (!faraGalerie) return continut.blocuri
+  return continut.blocuri.filter((b) => !(b.tip === 'galerie' && b.imagini[0]?.src === faraGalerie.prima))
+}
+
 function CodulCapitolului({ capitol }: { capitol: Meta }) {
   return (
     <>
@@ -160,7 +166,7 @@ function PaginaCapitol({ index }: { index: number }) {
         <Antet capitol={capitol} />
         {areCod && <Taburi capitol={capitol} activ={tab} schimba={setTab} />}
         <div className="mt-4" id="panou-capitol" role="tabpanel" aria-labelledby={`tab-${tab}`}>
-          {tab === 'analiza' ? <Blocuri blocuri={capitol.continut.blocuri} grafice={capitol.grafice} /> : <CodulCapitolului capitol={capitol} />}
+          {tab === 'analiza' ? <Blocuri blocuri={blocuriPeSite(capitol)} grafice={capitol.grafice} /> : <CodulCapitolului capitol={capitol} />}
         </div>
         <Navigare anterior={capitole[index - 1]} urmator={capitole[index + 1]} />
       </article>

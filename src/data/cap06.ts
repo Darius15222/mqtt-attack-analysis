@@ -56,7 +56,7 @@ const date: Capitol = {
    "puncte": [
     "6.1 valoarea tipică a fiecărei variabile în fiecare clasă;",
     "6.2 Kruskal-Wallis: diferă o variabilă numerică între cele 6 clase?",
-    "6.3 χ²: diferă o variabilă categorică sau binară între cele 6 clase?",
+    "6.3 χ²: diferă o variabilă categorială sau binară între cele 6 clase?",
     "6.4 Mann-Whitney: care atac diferă de traficul normal?"
    ]
   },
@@ -119,7 +119,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pe datele noastre",
-   "text": "la variabilele categorice apare doar valoarea cea mai frecventă din fiecare clasă, cu procentul ei, deci procentele de pe o coloană nu dau 100% (la legitimate, 0x00000018 are 63,31%, iar restul de 36,69% este 0x00000010). Ultima coloană este p-ul testului pe cele 6 clase: KW = Kruskal-Wallis (6.2), χ² = chi-pătrat (6.3); *** înseamnă p sub 0,001."
+   "text": "la variabilele categoriale apare doar valoarea cea mai frecventă din fiecare clasă, cu procentul ei, deci procentele de pe o coloană nu dau 100% (la legitimate, 0x00000018 are 63,31%, iar restul de 36,69% este 0x00000010). Ultima coloană este p-ul testului pe cele 6 clase: KW = Kruskal-Wallis (6.2), χ² = chi-pătrat (6.3); *** înseamnă p sub 0,001."
   },
   {
    "tip": "tabel",
@@ -401,7 +401,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "tcp.len la 3 clase, câte 3 pachete: bruteforce 0, 5, 11; normal 10, 12, 13; dos 100, 116, 168."
   },
   {
@@ -427,7 +427,7 @@ const date: Capitol = {
   },
   {
    "tip": "sectiune",
-   "titlu": "6.3 χ²: variabilele categorice și binare"
+   "titlu": "6.3 χ²: variabilele categoriale și binare"
   },
   {
    "tip": "text",
@@ -452,7 +452,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "mqtt.dupflag la 100 de pachete normale și 100 dos: normal 100 cu 0 și 0 cu 1; dos 86 cu 0 și 14 cu 1."
   },
   {
@@ -468,73 +468,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pe datele noastre",
-   "text": "tcp.flags, pas cu pas. Aceeași metodă s-a aplicat la toate variabilele categorice și binare din tabelul din 6.1."
-  },
-  {
-   "tip": "text",
-   "eticheta": "Intrare (datele)",
-   "text": "pentru fiecare pachet, valoarea lui tcp.flags și clasa lui (target). Câteva rânduri din date (numărul rândului din fișier; primele două pachete legitimate și primul pachet din fiecare atac):"
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "rând",
-    "tcp.flags",
-    "tcp.len",
-    "mqtt.len",
-    "target"
-   ],
-   "randuri": [
-    [
-     "1",
-     "0x00000010",
-     "0",
-     "0",
-     "legitimate"
-    ],
-    [
-     "5",
-     "0x00000010",
-     "0",
-     "0",
-     "legitimate"
-    ],
-    [
-     "2",
-     "0x00000018",
-     "90",
-     "165",
-     "dos"
-    ],
-    [
-     "47",
-     "0x00000011",
-     "0",
-     "0",
-     "bruteforce"
-    ],
-    [
-     "37",
-     "0x00000018",
-     "14",
-     "12",
-     "malformed"
-    ],
-    [
-     "7",
-     "0x00000018",
-     "29",
-     "0",
-     "slowite"
-    ],
-    [
-     "1421",
-     "0x00000018",
-     "32759",
-     "15",
-     "flood"
-    ]
-   ]
+   "text": "tcp.flags, pas cu pas. Aceeași metodă s-a aplicat la toate variabilele categoriale și binare din tabelul din 6.1."
   },
   {
    "tip": "text",
@@ -659,112 +593,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pasul 2, procente pe clasă",
-   "text": "fiecare număr se împarte la totalul coloanei lui, deci fiecare coloană dă 100%. Exemplu: 104.755 / 165.463 = 63,31% la legitimate."
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "tcp.flags",
-    "flaguri",
-    "legitimate",
-    "dos",
-    "bruteforce",
-    "malformed",
-    "slowite",
-    "flood"
-   ],
-   "randuri": [
-    [
-     "0x00000002",
-     "SYN",
-     "0,00%",
-     "0,01%",
-     "9,86%",
-     "8,26%",
-     "11,13%",
-     "0,16%"
-    ],
-    [
-     "0x00000004",
-     "RST",
-     "0,00%",
-     "0,00%",
-     "0,00%",
-     "14,50%",
-     "0,09%",
-     "0,00%"
-    ],
-    [
-     "0x00000010",
-     "ACK",
-     "36,69%",
-     "46,47%",
-     "37,71%",
-     "27,32%",
-     "44,36%",
-     "49,92%"
-    ],
-    [
-     "0x00000011",
-     "FIN, ACK",
-     "0,00%",
-     "0,03%",
-     "22,43%",
-     "8,27%",
-     "0,09%",
-     "0,33%"
-    ],
-    [
-     "0x00000012",
-     "SYN, ACK",
-     "0,00%",
-     "0,01%",
-     "9,86%",
-     "8,26%",
-     "11,13%",
-     "0,16%"
-    ],
-    [
-     "0x00000014",
-     "RST, ACK",
-     "0,00%",
-     "0,00%",
-     "0,00%",
-     "0,38%",
-     "0,00%",
-     "0,00%"
-    ],
-    [
-     "0x00000018",
-     "PSH, ACK",
-     "63,31%",
-     "53,48%",
-     "20,14%",
-     "26,27%",
-     "33,21%",
-     "49,43%"
-    ],
-    [
-     "0x00000019",
-     "FIN, PSH, ACK",
-     "0,00%",
-     "0,00%",
-     "0,00%",
-     "6,76%",
-     "0,00%",
-     "0,00%"
-    ],
-    [
-     "total",
-     "",
-     "100%",
-     "100%",
-     "100%",
-     "100%",
-     "100%",
-     "100%"
-    ]
-   ]
+   "text": "fiecare număr se împarte la totalul clasei lui, deci fiecare clasă face 100% (graficul de mai jos)."
   },
   {
    "tip": "imagine",
@@ -789,14 +618,6 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Codul (Python): aceiași pași, cu bibliotecile pandas și scipy:"
-  },
-  {
-   "tip": "cod",
-   "text": "import pandas as pd\nfrom scipy.stats import chi2_contingency\nd = pd.read_csv(\"mqttdataset_reduced.csv\")\nO = pd.crosstab(d[\"tcp.flags\"], d[\"target\"])   # pasul 1\nprocente = O / O.sum() * 100                    # pasul 2\nchi2, p, df, E = chi2_contingency(O)            # pașii 3, 4 și 5\nprint(round(chi2), df, p)                       # 196049 35 0.0"
-  },
-  {
-   "tip": "text",
    "eticheta": "Ce arată",
    "text": ""
   },
@@ -812,7 +633,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Ce înseamnă",
-   "text": "χ² arată doar că cel puțin o clasă diferă; ce atac diferă de normal se citește în tabelul procentelor (Pasul 2)."
+   "text": "χ² arată doar că cel puțin o clasă diferă; ce atac diferă de normal se citește în graficul procentelor (Pasul 2)."
   },
   {
    "tip": "sectiune",
@@ -840,7 +661,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "tcp.len, 4 pachete normale (10, 12, 13, 14) și 4 dos (20, 100, 116, 168):"
   },
   {

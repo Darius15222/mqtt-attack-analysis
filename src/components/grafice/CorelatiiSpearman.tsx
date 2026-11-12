@@ -12,12 +12,13 @@ type Matrice = { variabile: string[]; matrice: (number | null)[][] }
 const TOT_SETUL = 'tot_setul'
 const ROSU_ALBASTRU = ['#b2182b', '#ef8a62', '#1b2430', '#67a9cf', '#2166ac'] // -1 → 0 → +1
 
-// Păstrăm doar variabilele care au cel puțin o corelație calculabilă cu altă variabilă.
-function variabileNeconstante(m: Matrice) {
-  return m.variabile
-    .map((_, i) => i)
-    .filter((i) => m.matrice[i].some((valoare, j) => j !== i && valoare !== null))
-}
+// Aceleași 13 variabile (numerice, ordinale, binare) și aceeași ordine ca în imaginile din docx;
+// fișierul de date are și codurile variabilelor categoriale, care nu intră în corelație.
+const VARIABILE = [
+  'tcp.time_delta', 'tcp.len', 'mqtt.len', 'mqtt.kalive', 'mqtt.qos', 'mqtt.dupflag', 'mqtt.retain',
+  'mqtt.conflag.cleansess', 'mqtt.conflag.passwd', 'mqtt.conflag.uname', 'mqtt.proto_len', 'mqtt.ver', 'mqtt.conack.val',
+]
+const GRI = '#3a4250' // variabilă constantă în clasa aleasă: corelația nu se poate calcula
 
 export default function CorelatiiSpearman() {
   const toateMatricile = useDateGrafic<Record<string, Matrice>>('corelatii.json')
@@ -25,13 +26,13 @@ export default function CorelatiiSpearman() {
   if (!toateMatricile) return null
 
   const m = toateMatricile[clasaAleasa]
-  const indici = variabileNeconstante(m)
-  const nume = indici.map((i) => m.variabile[i])
+  const nume = VARIABILE
+  const indici = VARIABILE.map((v) => m.variabile.indexOf(v))
 
-  // ECharts vrea celulele ca [coloană, rând, valoare].
-  const celule = indici
-    .flatMap((i, rand) => indici.map((j, coloana) => [coloana, rand, m.matrice[i][j]]))
-    .filter((celula) => celula[2] !== null)
+  // ECharts vrea celulele ca [coloană, rând, valoare]; null = variabilă constantă (celulă gri, în seria a doua).
+  const toate = indici.flatMap((i, rand) => indici.map((j, coloana) => [coloana, rand, m.matrice[i][j]] as const))
+  const celule = toate.filter((c) => c[2] !== null)
+  const constante = toate.filter((c) => c[2] === null).map(([coloana, rand]) => [coloana, rand, 0])
 
   const optiuni = {
     grid: { left: 150, right: 20, top: 10, bottom: 130 },
@@ -46,12 +47,13 @@ export default function CorelatiiSpearman() {
       bottom: 0,
       itemWidth: 12,
       textStyle: { color: TEMA.textSters },
+      seriesIndex: 0,
       inRange: { color: ROSU_ALBASTRU },
     },
     tooltip: {
-      formatter: (p: { value: [number, number, number] }) => {
+      formatter: (p: { seriesIndex: number; value: [number, number, number] }) => {
         const [coloana, rand, r] = p.value
-        return `${nume[rand]}<br/>${nume[coloana]}<br/><b>R = ${formatNumar(r, 2)}</b>`
+        return `${nume[rand]}<br/>${nume[coloana]}<br/><b>${p.seriesIndex === 1 ? 'constantă: nu se poate calcula' : `R = ${formatNumar(r, 2)}`}</b>`
       },
     },
     series: [
@@ -63,11 +65,12 @@ export default function CorelatiiSpearman() {
         itemStyle: { borderColor: TEMA.fundal, borderWidth: 1 },
         emphasis: { itemStyle: { borderColor: TEMA.cyan, borderWidth: 2 } },
       },
+      { type: 'heatmap', data: constante, itemStyle: { color: GRI, borderColor: TEMA.fundal, borderWidth: 1 } },
     ],
   }
 
   return (
-    <Panou titlu="Corelația Spearman" indicatie="alege clasa; variabilele constante în clasa aleasă nu apar">
+    <Panou titlu="Corelația Spearman" indicatie="alege clasa; gri = variabila e constantă în clasa aleasă">
       <div className="mb-3 flex flex-wrap gap-1.5">
         {[TOT_SETUL, ...CLASE].map((clasa) => (
           <button

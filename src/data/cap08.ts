@@ -36,7 +36,7 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "intrare",
    "eticheta": "Intrare",
-   "text": "toate cele 330.926 de pachete; graficele folosesc 8.000 de pachete luate la întâmplare, ca punctele să se vadă (la 8.3, cel mult 3.000 pe clasă)."
+   "text": "toate cele 330.926 de pachete; toate calculele folosesc toate pachetele. Doar graficele cu puncte desenează 8.000 de pachete alese la întâmplare (la 8.3, cel mult 3.000 pe clasă): cu toate, punctele s-ar suprapune într-o pată."
   },
   {
    "tip": "pas",
@@ -95,7 +95,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu mic",
+   "eticheta": "Exemplu",
    "text": "punctele (1, 2), (2, 3), (3, 7):"
   },
   {
@@ -124,7 +124,7 @@ const date: Capitol = {
     "reziduurile au aceeași împrăștiere pe toată dreapta (graficul reziduurilor);",
     "reziduurile sunt aproximativ normale (histograma reziduurilor, fără 1% din valori la fiecare capăt, ca forma să se vadă, cu curba normală suprapusă, plus asimetria și kurtosis între -1 și 1);",
     "variabilele sunt continue: respectată, tcp.len și mqtt.len sunt în bytes, tcp.time_delta în secunde;",
-    "observațiile sunt independente. Se verifică cu testul Durbin-Watson: DW = suma (e_t - e_t-1)² / suma e_t², unde e_t este reziduul rândului t. Testul compară fiecare reziduu cu cel de pe rândul anterior. DW = 2 înseamnă reziduuri vecine necorelate; aici iese 2,00 la regresia 1 și 1,99 la regresia 2. Totuși, pachetele aceleiași conexiuni rămân legate între ele, iar ordinea rândurilor din fișier nu este neapărat ordinea din captură, deci independența nu poate fi confirmată (aceeași limită ca la 9.3)."
+    "observațiile sunt independente: testul Durbin-Watson compară fiecare reziduu cu cel de pe rândul anterior; o valoare de 2 înseamnă că reziduurile vecine nu sunt legate. Aici iese 2,00 la regresia 1 și 1,99 la regresia 2, dar independența tot nu poate fi confirmată: pachetele aceleiași conexiuni rămân legate între ele (aceeași limită ca la 9.2)."
    ]
   },
   {
@@ -324,7 +324,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Ce înseamnă",
-   "text": "regresia nu are valoare predictivă (R² = 0,0014). Timpul dintre pachete nu se poate prezice din dimensiunea lor, în acord cu corelațiile Spearman de cel mult 0,25 din secțiunea 7. Reziduurile sunt departe de normal: histograma nu urmează curba normală (asimetria 20,7, kurtosis 432). Graficul reziduurilor arată și câteva pachete cu reziduuri de aproape 60 de secunde, iar restul stau strânse lângă 0: există valori extreme, iar împrăștierea nu este aceeași, deci nici condițiile despre valorile extreme și despre împrăștierea reziduurilor nu sunt respectate."
+   "text": "regresia nu are valoare predictivă (R² = 0,0014). Timpul dintre pachete nu se poate prezice din dimensiunea lor, în acord cu corelațiile Spearman de cel mult 0,25 din secțiunea 7. Modelul prezice chiar timpi negativi pentru 44 de pachete (până la -0,85 secunde), deși un timp nu poate fi negativ. Reziduurile sunt departe de normal: histograma nu urmează curba normală (asimetria 20,7, kurtosis 432). Graficul reziduurilor arată și câteva pachete cu reziduuri de aproape 60 de secunde, iar restul stau strânse lângă 0: există valori extreme, iar împrăștierea nu este aceeași, deci nici condițiile despre valorile extreme și despre împrăștierea reziduurilor nu sunt respectate."
   },
   {
    "tip": "sectiune",
@@ -435,7 +435,7 @@ const date: Capitol = {
    "start": 1,
    "elemente": [
     "normal (legitimate): dreapta se potrivește aproape perfect (R² = 0,997, panta 0,850). Aici tcp.len ia doar valori între 0 și 20, iar mqtt.len urmează tcp.len;",
-    "la toate atacurile relația se strică: R² este 0,405 la dos, 0,167 la bruteforce, 0,148 la malformed și 0,002 la slowite (panta este chiar negativă, -0,045). La flood R² este 0,762, dar panta este practic 0 (0,0004): mqtt.len rămâne în jur de 15 oricât de mare este tcp.len;",
+    "la toate atacurile relația se strică: R² este 0,405 la dos, 0,167 la bruteforce, 0,148 la malformed și 0,002 la slowite (panta este chiar negativă, -0,045). La flood R² este 0,762, dar panta este practic 0 (0,0004): mqtt.len rămâne în jur de 15 oricât de mare este tcp.len. R² iese totuși mare pentru că flood are două grupuri, 310 pachete goale (tcp.len și mqtt.len 0) și 293 de pachete uriașe cu mqtt.len de cel mult 16, iar dreapta le unește;",
     "după logaritm, R² crește mult la bruteforce (0,979), malformed (0,903) și flood (0,964), dar rămâne mic la slowite (0,084). Transformarea ajută la unele clase, nu la toate;",
     "față de secțiunea 7.3: corelația Spearman era 1,00 la bruteforce și malformed, dar R² liniar pe valori brute este 0,167 și 0,148. Spearman arată că variabilele cresc împreună, iar regresia liniară cere ca punctele să stea pe o dreaptă, ceea ce nu se întâmplă cu valori extreme."
    ]

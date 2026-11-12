@@ -1,8 +1,8 @@
 """Probabilitățile prezise de regresia logistică și verificările din cap. 9 pentru MQTTset.
 
 Reproduce cifrele din:
-  - 9.6: probabilitățile prezise pe clase și curva logistică pentru un pachet tipic;
-  - tabelul 9.2: mediana și quartilele pentru atacuri;
+  - 9.4: probabilitățile prezise pe clase și curva logistică pentru un pachet tipic;
+  - 9.1: mediana și quartilele pentru atacuri;
   - mqtt.msgtype pe clase și pachetele PUBLISH+ACK din dos;
   - câteva calcule de verificare citate în text (tcp.time_delta = 3e-6,
     exemplul de asimetrie/aplatizare, contribuția χ² pentru conack).
@@ -22,7 +22,7 @@ import statsmodels.api as sm
 date = pd.read_csv(sys.argv[1], low_memory=False)
 date["is_attack"] = (date.target != "legitimate").astype(int)
 
-# --- 9.6: modelul logistic final și probabilitățile prezise pe clase ---
+# --- 9.4: modelul logistic final și probabilitățile prezise pe clase ---
 model = sm.GLM(date.is_attack, sm.add_constant(date[["tcp.len", "tcp.time_delta", "mqtt.len"]]),
                family=sm.families.Binomial()).fit()
 probabilitati = pd.Series(np.asarray(model.predict()), index=date.index)
@@ -38,10 +38,10 @@ for clasa in date.target.unique():
 coef = model.params
 print("curve d=0 typical", 1 / (1 + np.exp(-(coef.const + coef["tcp.len"] * 13 + coef["mqtt.len"] * 11))))
 
-# --- Tabelul 9.2: mediana și quartilele pentru atacuri ---
+# --- 9.1: mediana și quartilele pentru atacuri ---
 atacuri = date[date.is_attack == 1]
 for coloana in ["tcp.time_delta", "tcp.len", "mqtt.len"]:
-    print("9.2", coloana, atacuri[coloana].median(), atacuri[coloana].quantile([.25, .75]).tolist())
+    print("9.1", coloana, atacuri[coloana].median(), atacuri[coloana].quantile([.25, .75]).tolist())
 
 # --- mqtt.msgtype pe clase ---
 print(pd.crosstab(date["mqtt.msgtype"], date.target).to_string())

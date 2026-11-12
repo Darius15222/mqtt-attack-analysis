@@ -18,9 +18,9 @@ La scripturile cu reguli de asociere (06 și graficul din 11.4 din 08), ordinea 
 |---|---|---|
 | `01_cap1-7_statistici_corelatii.py` | clase, constante, statistici descriptive, tabelul pe clase, χ² tcp.flags, Kruskal-Wallis, Mann-Whitney, Spearman/Pearson, exemplele din cap. 4 | CSV |
 | `02_cap7-9_regresii_logistica.py` | matrice pe clase, regresiile 1-3, VIF, regresia logistică (separarea, pașii 10-30, modelul final) | CSV |
-| `03_cap9_probabilitati.py` | probabilitățile din 9.6, tabelul 9.2, msgtype pe clase | CSV |
-| `04_cap9_firth.py` | regresia Firth (9.5): coeficienți, erori standard, Chisq | CSV |
-| `05_cap8-9_cook_durbin_watson.py` | distanța Cook (9.3), Durbin-Watson (cap. 8), verificarea câmpurilor „0” | CSV, fișier `.npy` de ieșire pentru Cook |
+| `03_cap9_probabilitati.py` | probabilitățile din 9.4, medianele din 9.1, msgtype pe clase | CSV |
+| `04_cap9_firth.py` | regresia Firth (9.3): coeficienți, erori standard, χ² | CSV |
+| `05_cap8-9_cook_durbin_watson.py` | distanța Cook (9.2), Durbin-Watson (cap. 8), verificarea câmpurilor „0” | CSV, fișier `.npy` de ieșire pentru Cook |
 | `06_cap11_reguli_asociere.py` | tranzacțiile, Apriori, cele 308 reguli, regulile pe atacuri | CSV |
 | `07_grafice_corelatie.py` | graficele din 7.1-7.3 | CSV, folder de ieșire |
 | `08_grafice_restul.py` | graficele din cap. 5, 6, 7.4, 8, 9, 11 | CSV, folder de ieșire, `.npy` de la 05 |
