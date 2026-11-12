@@ -29,6 +29,7 @@ export type Meta = {
   grafice?: { id: IdGrafic; dupa: string }[]
   // galeria care începe cu imaginea `prima` nu se arată pe site: o înlocuiește un grafic interactiv
   faraGalerie?: { prima: string }
+  pescurt?: string[] // firul capitolului în câțiva pași, afișat sub rezumat
   continut: Capitol
 }
 
@@ -124,6 +125,13 @@ export const capitole: Meta[] = [
     slug: 'regresie-logistica',
     scurt: 'Regresie logistică',
     rezumat: 'Cât de probabil e ca un pachet să fie atac, după valorile lui.',
+    pescurt: [
+      'Separarea (9.3): qos = 1 și dupflag = 1 apar numai la atacuri, deci coeficienții lor cresc la nesfârșit.',
+      'Firth (9.3): o penalizare oprește creșterea; qos primește 60,7, adică doar „qos = 1 înseamnă sigur atac”.',
+      'Modelul fără separare (9.4): un pachet mai mare și venit mai repede are șansă mai mare să fie atac.',
+      'Rezultatul: prinde dos și flood, dar nu deosebește bruteforce, malformed și slowite de pachetele normale goale.',
+      'De aici, arborii (cap. 10), care folosesc și tcp.flags.',
+    ],
     scripturi: ['02_cap7-9_regresii_logistica.py', '03_cap9_probabilitati.py', '04_cap9_firth.py', '05_cap8-9_cook_durbin_watson.py', '08_grafice_restul.py'],
     fragmente: {
       '02_cap7-9_regresii_logistica.py': { titlu: 'Regresia logistică', linii: [[16, 24], [32, 33], [93, 126]], rulare: 'python cod.py mqttdataset_reduced.csv.zip' },

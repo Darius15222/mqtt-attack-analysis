@@ -22,6 +22,11 @@ function Antet({ capitol }: { capitol: Meta }) {
         <div>
           <h1 className="text-2xl font-bold text-white sm:text-3xl">{titluFaraNr(capitol)}</h1>
           <p className="mt-2 text-muted">{capitol.rezumat}</p>
+          {capitol.pescurt && (
+            <ol className="mt-4 list-decimal space-y-1 rounded-lg border border-line px-4 py-3 pl-8 text-sm text-muted">
+              {capitol.pescurt.map((pas) => <li key={pas}>{pas}</li>)}
+            </ol>
+          )}
         </div>
       </div>
     </>
