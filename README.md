@@ -32,7 +32,7 @@ după text, iar site-ul le numerotează 1-5 și pune concluzia într-un panou ve
 Regenerare din docx (suprascrie `src/data/capNN.ts` și `public/img/`):
 
 ```bash
-python3 scripts/genereaza.py ../../Facultate/ai-ml/MQTTset_tema.docx
+python3 scripts/genereaza.py ../../Facultate/ai-ml/MQTTset_site.docx
 python3 scripts/date_grafice.py <date.csv> <rezultate/corelatii> <noduri_clasificare.csv> <reguli_atac.csv>
 python3 scripts/cod_pdf.py cod.html   # apoi se tipărește în public/MQTTset_cod.pdf (Chromium, A4)
 ```

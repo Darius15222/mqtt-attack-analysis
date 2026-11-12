@@ -10,7 +10,92 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Din capitolul 9 știm că regresia logistică nu poate folosi variabilele categoriale (de exemplu tcp.flags) și pe cele care separă perfect (mqtt.qos). Un arbore de decizie le folosește direct: împarte pachetele în grupuri tot mai omogene, prin întrebări simple de tipul „tcp.len ≤ 20?”. Fiecare grup final (frunză) dă o predicție: clasa majoritară la clasificare, media la regresie. Am construit doi arbori: unul care prezice dacă un pachet este atac (is_attack) și unul care prezice tcp.len."
+   "text": "Regresia logistică din capitolul 9 nu a folosit variabilele categoriale (de exemplu tcp.flags, care ar fi cerut codificare în mai multe coloane) și nici pe cele care separă perfect (mqtt.qos). Un arbore de decizie le folosește direct: împarte pachetele în grupuri tot mai omogene, prin întrebări simple de tipul „tcp.len ≤ 20?”. Fiecare grup final (frunză) dă o predicție: clasa majoritară la clasificare, media la regresie. Am construit doi arbori: unul care prezice dacă un pachet este atac (is_attack) și unul care prezice tcp.len."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "am ales adâncimea 5, de la care F1 nu mai crește. Prima întrebare e mqtt.qos > 0, iar arborele recunoaște corect 95,1% din pachete, cu doar 1.269 de alarme false. Ratează mai ales pachetele care au doar flagul ACK."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "arborele folosește direct variabilele pe care regresia nu le putea folosi (tcp.flags, mqtt.qos), iar fiecare frunză e o regulă care se poate citi."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Nod, frunză",
+     "nod = grup de pachete la care se pune o întrebare; frunză = grup final, care dă răspunsul",
+     "frunza prezice clasa majoritară din ea",
+     "frunza 29: 54.431 de pachete, toate dos"
+    ],
+    [
+     "Adâncime",
+     "câte întrebări pune arborele, una după alta",
+     "mai adânc = deosebiri mai fine, dar arbore mai greu de citit",
+     "aleasă: 5"
+    ],
+    [
+     "Corecția Bonferroni",
+     "p se înmulțește cu numărul de variabile încercate",
+     "altfel o variabilă ar ieși bună doar din întâmplare",
+     "p = 0,01 cu 7 variabile → 0,07"
+    ],
+    [
+     "TP, FP, FN, TN",
+     "atac prins, alarmă falsă, atac ratat, normal recunoscut",
+     "căsuțele matricei de confuzie",
+     "150.659, 1.269, 14.804, 164.194"
+    ],
+    [
+     "Accuracy",
+     "cât din total e recunoscut corect",
+     "de la 0 la 1",
+     "0,9514"
+    ],
+    [
+     "Sensitivity",
+     "din atacurile reale, câte sunt prinse",
+     "mare = ratează puține atacuri",
+     "0,9105"
+    ],
+    [
+     "Precision",
+     "din pachetele numite „atac”, câte chiar sunt atac",
+     "mare = puține alarme false",
+     "0,9916"
+    ],
+    [
+     "F1",
+     "o singură notă din Sensitivity și Precision",
+     "mare doar dacă amândouă sunt mari",
+     "0,949"
+    ],
+    [
+     "MAE",
+     "eroarea medie (cât greșește, în medie)",
+     "în aceeași unitate ca valoarea (bytes)",
+     "57,02"
+    ],
+    [
+     "RMSE",
+     "ca MAE, dar erorile mari cântăresc mai mult (se ridică la pătrat)",
+     "mult peste MAE → câteva erori foarte mari",
+     "823,17"
+    ]
+   ]
   },
   {
    "tip": "parte",
@@ -70,7 +155,7 @@ const date: Capitol = {
    "text": "",
    "puncte": [
     "arborii sunt construiți cu funcția ctree din pachetul R partykit (scriptul cod/09_cap10_arbori_ctree.R);",
-    "arborii se construiesc și se verifică pe toate pachetele; cu frunze de cel puțin 300 de pachete, un arbore verificat pe propriile date pare doar puțin mai bun decât este;",
+    "arborii se construiesc și se verifică pe toate pachetele: un arbore construit doar pe 70% din pachete are pe celelalte 30% F1 = 0,950, cât pe toate (0,949), deci nu prezice mai prost pachete pe care nu le-a văzut;",
     "p-urile sunt prea optimiste, pentru că pachetele aceleiași conexiuni nu sunt independente (9.2); ele servesc doar la alegerea împărțirilor."
    ]
   },
@@ -96,12 +181,12 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pasul 1, testul",
-   "text": "pentru fiecare predictor se măsoară cât de legat este de țintă, cu statistica T (la variabilele categoriale este practic χ² din capitolul 6), și se calculează p."
+   "text": "pentru fiecare predictor se măsoară cât de legat este de țintă, cu statistica T (la variabilele categoriale este practic χ² din capitolul 6: T = (n - 1) / n · χ², cu n pachete în nod), și se calculează p."
   },
   {
    "tip": "text",
    "eticheta": "Pasul 2, Bonferroni",
-   "text": "fiecare p se înmulțește aproximativ cu numărul de predictori testați în nod (7 la rădăcină). Fără corecție, din 7 teste unul ar ieși sub 0,05 doar din întâmplare în 30% din cazuri."
+   "text": "fiecare p se înmulțește cu numărul de predictori testați în nod (7 la rădăcină). Fără corecție, dacă niciun predictor n-ar fi legat de țintă, cel puțin unul din 7 teste ar ieși totuși sub 0,05 în 30% din cazuri (1 - 0,95⁷ = 0,30)."
   },
   {
    "tip": "text",
@@ -193,25 +278,25 @@ const date: Capitol = {
      "tcp.flags",
      "categorial",
      "χ²",
-     "Deosebește bruteforce, malformed și slowite (6.3, 13)."
+     "Deosebește bruteforce, malformed și slowite (6.3)."
     ],
     [
      "mqtt.msgtype",
      "categorial",
      "χ²",
-     "Tipul mesajului; tipul 4 apare aproape doar la dos (13)."
+     "Tipul mesajului; tipul 4 (PUBACK) apare aproape doar la dos (6.1, mqtt.hdrflags 0x40)."
     ],
     [
      "tcp.len",
      "numeric",
      "T = (n - 1) · r²",
-     "Mare la dos și flood (13)."
+     "Mare la dos și flood (6.1)."
     ],
     [
      "tcp.time_delta",
      "numeric",
      "T = (n - 1) · r²",
-     "Mic la dos și flood (13)."
+     "Mic la dos și flood (6.1)."
     ],
     [
      "mqtt.qos",
@@ -239,11 +324,11 @@ const date: Capitol = {
    "eticheta": "Decizii",
    "text": "",
    "puncte": [
-    "nu intră variabilele constante, mqtt.msg și mqtt.msgid (secțiunea 5);",
+    "nu intră variabilele constante, mqtt.msg și mqtt.msgid (capitolul 5);",
     "nu intră mqtt.len (corelația 0,94 cu tcp.len, 7.1) și nici mqtt.hdrflags (un cod care pune la un loc tipul mesajului, QoS și dupflag);",
     "nu intră restul grupului de conectare, nenul doar în pachetele de conectare, pe care le reprezintă mqtt.ver;",
     "nu intră mqtt.retain: este nenul la doar 0,04% din pachete;",
-    "verificare: cu toate cele 19 variabile neconstante, F1 este tot 0,9494, deci excluderile nu pierd informație; acel arbore pune însă la rădăcină mqtt.hdrflags, un cod hex greu de citit;"
+    "verificare: cu toate cele 19 variabile neconstante, F1 este tot 0,9494, deci excluderile nu pierd informație; acel arbore pune însă la rădăcină mqtt.hdrflags, un cod hex greu de citit."
    ]
   },
   {
@@ -267,10 +352,25 @@ const date: Capitol = {
    "text": "cea mai mică adâncime de la care F1 (respectiv R²) nu mai crește cu cel puțin 0,005 la nicio adâncime următoare."
   },
   {
+   "tip": "text",
+   "eticheta": "F1",
+   "text": "nota arborelui care ghicește clasa, de la 0 la 1. E mare doar dacă arborele ratează puține atacuri și dă puține alarme false: F1 = 2 · Precision · Sensitivity / (Precision + Sensitivity), explicate în 10.5. Exemplu: arborele prinde doar 1 atac din 5 (Sensitivity 0,2), fără alarme false (Precision 1): F1 = 2 · 1 · 0,2 / 1,2 = 0,33."
+  },
+  {
+   "tip": "text",
+   "eticheta": "R²",
+   "text": "nota arborelui care ghicește un număr (tcp.len), de la 0 la 1: cât de aproape sunt predicțiile de valorile reale, față de a spune mereu media. R² = 1 - suma erorilor arborelui la pătrat / suma abaterilor de la medie la pătrat. Exemplu: valori reale 10, 20, 30 (media 20, abateri 100 + 0 + 100 = 200), predicții 12, 20, 28 (erori 4 + 0 + 4 = 8): R² = 1 - 8 / 200 = 0,96."
+  },
+  {
    "tip": "imagine",
    "src": "arbore_adancime.png",
    "latime": 1530,
    "inaltime": 578
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "pe orizontală, adâncimea maximă (de la 2 la 6); pe verticală, nota arborelui: F1 în stânga (clasificare), R² în dreapta (regresie). Linia punctată marchează adâncimea aleasă. Valorile, pentru adâncimile 2-6: F1 0,839, 0,815, 0,900, 0,949, 0,949; R² 0,116, 0,164, 0,242, 0,242, 0,242."
   },
   {
    "tip": "pas",
@@ -294,6 +394,11 @@ const date: Capitol = {
    "text": "arborele final (maxdepth = 5, ales în 10.3), construit pe toate cele 330.926 de pachete."
   },
   {
+   "tip": "text",
+   "eticheta": "Cum s-a construit",
+   "text": "pașii din 10.1, repetați de sus în jos. La rădăcină, mqtt.qos e cea mai legată de atac, deci prima întrebare e „mqtt.qos > 0?”; răspunsul „da” duce la 54.431 de pachete, toate dos (frunza 29). Celelalte 276.495 de pachete merg mai departe, iar în fiecare grup testul se reia pe cele 7 variabile: apar pe rând mqtt.msgtype, tcp.flags, tcp.len și tcp.time_delta. O ramură se oprește când nicio întrebare nu mai are p sub 0,05, când ar rămâne sub 300 de pachete sau la a 5-a întrebare. Rezultă 15 frunze."
+  },
+  {
    "tip": "imagine",
    "src": "arbore_clasificare.png",
    "latime": 1700,
@@ -301,7 +406,8 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Fiecare nod arată numărul lui, variabila aleasă și p-ul ajustat; pe ramuri sunt condițiile (0x18 = 0x00000018). Bara din frunză arată din ce clase sunt pachetele ei."
+   "eticheta": "Cum se citește",
+   "text": "pornești de sus, de la rădăcină. Fiecare nod arată numărul lui, variabila aleasă și p-ul ajustat; pe ramuri sunt condițiile (0x18 = 0x00000018). Un pachet urmează ramura care i se potrivește până la o frunză; bara din frunză arată din ce clase sunt pachetele ajunse acolo."
   },
   {
    "tip": "pas",
@@ -624,7 +730,7 @@ const date: Capitol = {
    "text": "",
    "puncte": [
     "mqtt.len nu intră, pentru că este aproape aceeași informație ca ținta (corelația 0,94);",
-    "clasa intră, ca să vedem cât depinde mărimea pachetului de tipul atacului;"
+    "clasa intră, ca să vedem cât depinde mărimea pachetului de tipul atacului."
    ]
   },
   {
@@ -635,7 +741,8 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Frunzele arată tcp.len pe scară logaritmică: cutia de la Q1 la Q3, linia de la minim la maxim, mediana și media; media este valoarea prezisă."
+   "eticheta": "Cum se citește",
+   "text": "frunzele arată tcp.len pe scară logaritmică: cutia de la Q1 la Q3, linia de la minim la maxim, mediana și media; media este valoarea prezisă."
   },
   {
    "tip": "tabel",
@@ -668,6 +775,11 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Exemplu",
+   "text": "3 pachete cu lungimile reale 10, 20 și 90, prezise 20, 20 și 50, deci erorile sunt 10, 0 și 40. MAE = (10 + 0 + 40) / 3 = 16,7; RMSE = rădăcina din [(100 + 0 + 1.600) / 3] = 23,8. RMSE iese mai mare, pentru că eroarea de 40 cântărește mult după ridicarea la pătrat. La fel la noi: RMSE (823,17) e mult peste MAE (57,02), din cauza câtorva erori foarte mari, la pachetele flood."
+  },
+  {
+   "tip": "text",
    "text": "Comparația cu regresia liniară (capitolul 8), pe aceleași intrări și pe toate pachetele, cu aceleași setări ctree ca mai sus (maxdepth = 4):"
   },
   {
@@ -697,14 +809,36 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
+   "tip": "tabel",
+   "antet": [
+    "Ce credem",
+    "Cum verificăm",
+    "Rezultat",
+    "Verdict"
+   ],
+   "randuri": [
+    [
+     "Câteva întrebări simple recunosc corect majoritatea pachetelor.",
+     "arborele de clasificare, adâncimea 5 (10.4, 10.5)",
+     "15 frunze, 5 din 7 variabile; 95,1% din pachete corecte, F1 = 0,949",
+     "Confirmată. Ratează mai ales pachetele doar cu ACK."
+    ],
+    [
+     "tcp.len se poate prezice din clasă și tipul pachetului.",
+     "arborele de regresie (10.6)",
+     "R² = 0,24",
+     "Parțial. Pachetele flood, fie goale, fie uriașe, dau 90% din suma pătratelor erorilor."
+    ]
+   ]
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "Ipoteza se confirmă: arborele de clasificare recunoaște corect 95,1% din pachete (F1 = 0,949), cu 15 frunze și doar 5 dintre cele 7 variabile (mqtt.qos, mqtt.msgtype, tcp.flags, tcp.len, tcp.time_delta).",
     "Când spune „atac”, aproape mereu are dreptate: doar 1.269 de alarme false din 330.926 de pachete.",
     "Scapă 14.804 atacuri, iar 95% dintre ele sunt în frunza 12: pachete doar cu ACK, care arată la fel ca cele normale.",
-    "Arborele care prezice mqtt.len din tcp.len ajunge la R² = 0,899, față de 0,075 la dreapta din 8.1, pentru că urmează separat fiecare grup de pachete (10.6). Arborele care prezice tcp.len ajunge doar la R² = 0,24: 90% din suma pătratelor erorilor vine de la pachetele flood."
+    "Arborele care prezice mqtt.len din tcp.len ajunge la R² = 0,899, față de 0,075 la dreapta din 8.1, pentru că urmează separat fiecare grup de pachete (10.6)."
    ]
   }
  ]

@@ -110,8 +110,9 @@ afiseaza_si_salveaza(do.call(rbind, lapply(2:6, function(md) {
 m <- ctree(formula_clasificare, d, control = setari(5))
 cat("\n10.4 arborele de clasificare\n")
 print(m)
+# unname: predict() pune ca nume numerele nodurilor, care diferă între cei doi arbori
 cat("aceleasi predictii la maxdepth 6:",
-    identical(predict(m), predict(ctree(formula_clasificare, d, control = setari(6)))), "\n")
+    identical(unname(predict(m)), unname(predict(ctree(formula_clasificare, d, control = setari(6))))), "\n")
 
 
 # ---- 10.1 Testele din rădăcină ----------------------------------------------
@@ -193,6 +194,13 @@ cat(length(X19), "variabile: F1", metrici_clasificare(d$is_attack, predict(m19))
 d$len3 <- cut(d$tcp.len, c(-1, 0, 20, Inf))
 m_len3 <- ctree(reformulate(c(setdiff(X7, "tcp.len"), "len3"), "is_attack"), d, control = setari(5))
 cat("tcp.len in 0 / 1-20 / 21+: F1", metrici_clasificare(d$is_attack, predict(m_len3))[4], "\n")
+
+# Arborele construit pe 70% din pachete, verificat pe celelalte 30% (pachete nevăzute)
+set.seed(1)
+antrenare <- sample(nrow(d), round(0.7 * nrow(d)))
+m70 <- ctree(formula_clasificare, d[antrenare, ], control = setari(5))
+cat("construit pe 70%, F1 pe restul de 30%:",
+    metrici_clasificare(d$is_attack[-antrenare], predict(m70, newdata = d[-antrenare, ]))[4], "\n")
 
 
 # ---- 10.6 Arborele de regresie pentru tcp.len (maxdepth 4) ------------------

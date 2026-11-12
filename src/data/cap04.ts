@@ -13,10 +13,20 @@ const date: Capitol = {
    "text": "Termenii folosiți în temă, fiecare într-o frază: ce înseamnă și fie formula, fie secțiunea unde este explicat pas cu pas, cu exemplu."
   },
   {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "îl folosești ca pe un dicționar: când întâlnești un termen și vrei definiția pe scurt; pentru calculul pas cu pas și un exemplu, mergi la secțiunea indicată în a treia coloană."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "fiecare capitol are și propriul tabel „Termeni noi”, cu exemple; aici sunt principalii termeni la un loc."
+  },
+  {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "calculele s-au făcut în Python (pandas, scipy, statsmodels) și în R (partykit, pentru arbori), pe toate cele 330.926 de pachete. Graficele cu puncte desenează doar 8.000 de pachete alese la întâmplare (la 8.3, cel mult 3.000 pe clasă), ca punctele să se vadă."
+   "text": "calculele s-au făcut în Python (pandas, scipy, statsmodels) și în R (partykit, pentru arbori), pe toate cele 330.926 de pachete."
   },
   {
    "tip": "tabel",
@@ -44,7 +54,7 @@ const date: Capitol = {
     [
      "Codul hex (tcp.flags)",
      "Fiecare flag este o putere a lui 2: FIN 1, SYN 2, RST 4, PSH 8, ACK 16.",
-     "0x00000018 = 1 · 16 + 8 = 24 = 16 + 8 = ACK și PSH."
+     "0x00000018 = 1 · 16 + 8 = 24 = ACK (16) + PSH (8)."
     ],
     [
      "Stele",
@@ -72,7 +82,7 @@ const date: Capitol = {
      "r = suma (xi - x̄)(yi - ȳ) / rădăcina din [suma (xi - x̄)² · suma (yi - ȳ)²]; comparată cu Spearman în 7.4."
     ],
     [
-     "Corelația Spearman (R)",
+     "Corelația Spearman (ρ, rho)",
      "Dacă două variabile cresc și scad împreună; nu o strică valorile extreme.",
      "Formula lui Pearson, aplicată pe ranguri; capitolul 7 (Metoda)."
     ],
@@ -80,6 +90,11 @@ const date: Capitol = {
      "Regresia liniară, reziduu, R²",
      "Dreapta care prezice y din x, eroarea ei la fiecare pachet și cât de bine se potrivește.",
      "Capitolul 8 (Metoda)."
+    ],
+    [
+     "Durbin-Watson",
+     "Dacă erorile pachetelor vecine sunt legate între ele.",
+     "Aproape de 2 = nelegate; capitolul 8 (Metoda)."
     ],
     [
      "Logaritmul ln(1 + x)",
@@ -97,14 +112,34 @@ const date: Capitol = {
      "-2 · logaritmul verosimilității; 9.4."
     ],
     [
+     "Std. Error și z",
+     "Cât de sigur e un coeficient și de câte erori e departe de 0.",
+     "z = coeficient / Std. Error; |z| peste 1,96 → p sub 0,05; 9.4."
+    ],
+    [
+     "VIF",
+     "Dacă o variabilă se poate ghici din celelalte (atunci coeficienții nu sunt de încredere).",
+     "VIF = 1 / (1 - R²), cu R² al variabilei prezise din celelalte; 9.2."
+    ],
+    [
+     "EPV",
+     "Câte atacuri revin fiecărei variabile din model; prea puține fac coeficienții nesiguri.",
+     "EPV = numărul de atacuri / numărul de variabile; minim 10-15; 9.2."
+    ],
+    [
+     "Distanța Cook",
+     "Cât s-ar schimba modelul fără un singur pachet.",
+     "Peste 0,5 merită verificat, peste 1 pachetul e influent; 9.2."
+    ],
+    [
      "Regresia Firth",
-     "Regresia logistică cu o penalizare pentru variabilele care apar doar la atacuri.",
+     "Regresia logistică cu o penalizare care împiedică coeficienții să crească la infinit când o valoare apare doar la o clasă.",
      "9.3"
     ],
     [
      "Statistica T și corecția Bonferroni",
      "Cât de legat este un predictor de țintă; corecția pentru mai multe teste făcute deodată.",
-     "p ajustat = 1 - (1 - p)^k, practic p · k, cu k predictori testați; 10.1."
+     "p ajustat = p · k, cu k predictori testați; 10.1."
     ],
     [
      "Arborele de decizie",

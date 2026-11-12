@@ -13,6 +13,61 @@ const date: Capitol = {
    "text": "Din capitolul 5 știm cum arată fiecare variabilă pe tot setul. Acum o comparăm între traficul normal și fiecare dintre cele 5 atacuri: o variabilă care arată la fel peste tot nu ne ajută să recunoaștem atacurile."
   },
   {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "testăm toate clasele deodată (Kruskal-Wallis sau χ²) și fiecare atac față de normal (Mann-Whitney). Toate cele 19 variabile diferă, iar flagurile TCP deosebesc clar bruteforce, malformed și slowite."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "fiecare atac are un „semn”: dos are mqtt.qos = 1, slowite mqtt.kalive = 65.535, bruteforce și malformed flaguri rare; dos și flood au aceleași flaguri ca normalul."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "H0 (ipoteza de nul)",
+     "presupunerea că nu există nicio diferență",
+     "testul verifică dacă datele o contrazic",
+     "„tcp.len arată la fel în toate clasele”"
+    ],
+    [
+     "p (p-value)",
+     "cât de probabil ar fi un rezultat ca al nostru, sau mai extrem, dacă H0 ar fi adevărată",
+     "p sub 0,05 → respingem H0; p nu spune cât de mare e diferența",
+     "flood la tcp.time_delta: p = 0,042"
+    ],
+    [
+     "Kruskal-Wallis",
+     "dacă cele 6 clase au valori diferite, comparate pe ranguri",
+     "p mic → cel puțin o clasă stă mai sus sau mai jos",
+     "toate variabilele numerice: p sub 0,001"
+    ],
+    [
+     "χ² (chi-pătrat)",
+     "la variabilele categoriale: cât de departe sunt numerele reale de cele așteptate dacă valoarea n-ar depinde de clasă",
+     "χ² mare → p mic → valoarea depinde de clasă",
+     "FIN+ACK la bruteforce: așteptat aproximativ 184 de pachete, real 3.252"
+    ],
+    [
+     "Mann-Whitney",
+     "ca Kruskal-Wallis, dar un singur atac față de traficul normal",
+     "stelele: *** = dovadă foarte puternică de diferență (p sub 0,001), * = dovadă slabă (p sub 0,05)",
+     "flood la tcp.time_delta: *"
+    ]
+   ]
+  },
+  {
    "tip": "parte",
    "fel": "ipoteza",
    "titlu": "Ipoteza"
@@ -109,11 +164,11 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "mediană, nu medie: nici pe clase distribuțiile nu au formă de clopot. De exemplu, tcp.len la normal este 0 la 36,7% din pachete și între 10 și 14 la 61%, iar media 7,8 cade între grupuri, unde aproape nu există pachete."
+   "text": "mediană, nu medie: nici pe clase distribuțiile nu au formă de clopot: tcp.len la normal este 0 la 36,7% din pachete și între 10 și 14 la 61%, iar media 7,8 cade între grupuri, unde aproape nu există pachete."
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu de celulă",
+   "eticheta": "Exemplu",
    "text": "tcp.len la legitimate: se sortează cele 165.463 de valori; mediana este valoarea de la poziția (165.463 + 1) / 2 = 82.732, adică 12; Q1 (poziția 41.366,5) este 0, iar Q3 (poziția 124.097,5) este 13. În tabel apare 12 [0, 13]."
   },
   {
@@ -348,7 +403,7 @@ const date: Capitol = {
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "grupele „Mesaj will\" și „Abonare\" (toate variabilele lor sunt constante);",
+    "grupele „Mesaj will” și „Abonare” (toate variabilele lor sunt constante);",
     "cele 3 constante din celelalte grupe (conflag.reserved, conack.flags.reserved, conack.flags.sp);",
     "mqtt.msg și mqtt.msgid (conținutul mesajului și un număr de ordine)."
    ]
@@ -396,7 +451,7 @@ const date: Capitol = {
     "toate valorile, din toate clasele, se pun într-un singur șir crescător și primesc rangul 1, 2, 3, …; valorile egale primesc media rangurilor lor;",
     "pentru fiecare clasă se adună rangurile ei: R;",
     "H = 12 / (N · (N + 1)) · suma (R² / n) - 3 · (N + 1), cu N = toate valorile și n = valorile clasei;",
-    "p vine din distribuția χ² cu (numărul de clase - 1) grade de libertate. Dacă o clasă stă mereu „mai sus” sau „mai jos” în șir, H iese mare și p mic."
+    "p vine din distribuția χ² cu (numărul de clase - 1) grade de libertate (câte valori pot varia liber când totalul e fixat; de ele depinde cât de mare trebuie să fie H ca să conteze). Dacă o clasă stă mereu „mai sus” sau „mai jos” în șir, H iese mare și p mic."
    ]
   },
   {
@@ -473,7 +528,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pasul 1, tabelul de contingență (O)",
-   "text": "se numără pachetele pentru fiecare pereche (valoare tcp.flags, clasă). Pe rânduri sunt cele 8 valori, pe coloane cele 6 clase. Coloana „flaguri” traduce codul hex (secțiunea 4)."
+   "text": "se numără pachetele pentru fiecare pereche (valoare tcp.flags, clasă). Pe rânduri sunt cele 8 valori, pe coloane cele 6 clase. Coloana „flaguri” traduce codul hex (capitolul 4)."
   },
   {
    "tip": "tabel",
@@ -603,6 +658,11 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare coloană e o clasă și însumează 100%. Culorile sunt valorile lui tcp.flags (legenda din dreapta): 0x10 = ACK, 0x18 = PSH+ACK, 0x02 = SYN, 0x12 = SYN+ACK, 0x11 = FIN+ACK, 0x04 = RST, 0x14 = RST+ACK, 0x19 = FIN+PSH+ACK. Înălțimea unei culori e procentul de pachete din clasă care au acel flag."
+  },
+  {
+   "tip": "text",
    "eticheta": "Pasul 3, valorile așteptate (E)",
    "text": "dacă tcp.flags n-ar avea legătură cu clasa, fiecare clasă ar avea aceleași procente ca tot setul. E = total rând · total coloană / N. Exemplu: 0x00000011 la bruteforce: E = 4.198 · 14.501 / 330.926 = 183,95, dar s-au observat O = 3.252."
   },
@@ -614,7 +674,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pasul 5, p",
-   "text": "grade de libertate (câte celule ale tabelului pot varia liber când totalurile sunt fixe; de ele depinde cât de mare trebuie să fie χ² ca să conteze): df = (8 - 1) · (6 - 1) = 35. Pentru χ² = 196.049 cu 35 de grade de libertate, p este practic 0 (sub 0,001), deci respingem H0: distribuția lui tcp.flags diferă între clase."
+   "text": "grade de libertate (câte celule ale tabelului pot varia liber când totalurile sunt fixe): df = (8 - 1) · (6 - 1) = 35. Pentru χ² = 196.049 cu 35 de grade de libertate, p este practic 0 (sub 0,001), deci respingem H0: distribuția lui tcp.flags diferă între clase."
   },
   {
    "tip": "text",
@@ -676,7 +736,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pe datele noastre",
-   "text": "flood față de normal la tcp.time_delta: 165.463 · 613 = 101.428.819 perechi; U = 48.313.904,5, adică 47,6% din perechi, aproape de jumătate; p = 0,042, doar puțin sub 0,05."
+   "text": "flood față de normal la tcp.time_delta: 165.463 · 613 = 101.428.819 perechi; U = 53.114.914,5, adică 52,4% din perechi, aproape de jumătate; p = 0,042, doar puțin sub 0,05."
   },
   {
    "tip": "text",
@@ -693,7 +753,12 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Stelele din grafice arată aceste comparații (atac față de normal). Graficele, câte unul pe variabilă, compară cele 6 clase:"
+   "eticheta": "Cum se citește",
+   "text": "fiecare grafic e o variabilă, cu cele 6 clase una lângă alta. La cutii (boxplot), cutia cuprinde jumătatea din mijloc a pachetelor clasei (de la Q1 la Q3), linia din ea e mediana, iar mustățile arată restul valorilor obișnuite. La bare, fiecare clasă are 100%. Stelele de deasupra unui atac îl compară cu traficul normal: *** = dovadă foarte puternică de diferență (p sub 0,001), * = dovadă slabă (p sub 0,05), „-” = nu se poate calcula."
+  },
+  {
+   "tip": "text",
+   "text": "Graficele, câte unul pe variabilă, compară cele 6 clase:"
   },
   {
    "tip": "lista",
@@ -855,14 +920,35 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
+   "tip": "tabel",
+   "antet": [
+    "Ce credem",
+    "Cum verificăm",
+    "Rezultat",
+    "Verdict"
+   ],
+   "randuri": [
+    [
+     "Variabilele arată altfel la atacuri decât la traficul normal.",
+     "Kruskal-Wallis (numerice și mqtt.qos, 6.2) și χ² (celelalte, 6.3), pe toate cele 6 clase",
+     "toate cele 19 variabile: p sub 0,001",
+     "Confirmată. H0 se respinge la toate variabilele."
+    ],
+    [
+     "Fiecare atac diferă de traficul normal.",
+     "Mann-Whitney, fiecare atac față de normal (6.4)",
+     "aproape toate perechile: p sub 0,001; flood la tcp.time_delta: p = 0,042",
+     "Confirmată. Excepție: flood la timpul dintre pachete are doar p = 0,042; cu corecția Bonferroni pentru cele 21 de comparații (0,042 · 21 = 0,88), nu mai trece de 0,05."
+    ]
+   ]
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "Toate cele 19 variabile diferă între clase (p sub 0,001, 6.2 și 6.3). Cu atâtea pachete, p iese mic și la diferențe mici, deci cât de mare e diferența se citește în tabel (6.1).",
     "Cele mai clare diferențe: mqtt.qos = 1 apare doar la dos, mqtt.kalive = 65.535 doar la slowite, iar tcp.len are valori mult mai mari la dos și flood (Q3 = 116 și 32.759, față de 13 la normal) (6.1).",
     "tcp.flags: traficul normal are doar ACK și PSH+ACK; SYN, FIN+ACK, RST și celelalte apar doar la atacuri, mai ales la bruteforce, malformed și slowite. Dos și flood au aproape numai ACK și PSH+ACK, ca traficul normal, deci nu se recunosc după tcp.flags (6.3).",
-    "Aproape fiecare atac diferă de normal la fiecare variabilă numerică; excepția clară este flood la tcp.time_delta (6.4).",
     "Atacurile arată diferit și între ele (tabelul pe clase), deci nu le punem într-un singur grup decât acolo unde metoda o cere (7.4 și capitolele 9 și 10)."
    ]
   }

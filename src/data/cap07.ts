@@ -13,6 +13,43 @@ const date: Capitol = {
    "text": "Din capitolul 6 știm că variabilele diferă între clase. Acum vedem care variabile spun același lucru: dacă două variabile sunt foarte legate, una e de prisos, iar la regresie (capitolele 8 și 9) două variabile foarte legate se încurcă una pe alta."
   },
   {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "calculăm corelația Spearman pentru fiecare pereche. tcp.len și mqtt.len sunt puternic legate (0,94), pentru că mesajul MQTT stă în pachetul TCP, iar câmpurile de conectare sunt practic aceeași informație."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "o pereche puternic legată înseamnă că una dintre variabile e în plus; de la tcp.len și mqtt.len pornește regresia din capitolul 8."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Corelația Spearman (ρ, rho)",
+     "cât de mult cresc două variabile împreună, calculată pe ranguri",
+     "de la -1 la 1; 0 = fără legătură; 1 = cresc perfect împreună",
+     "tcp.len cu mqtt.len: 0,94"
+    ],
+    [
+     "Corelația Pearson (r)",
+     "la fel, dar pe valorile reale; măsoară o legătură în linie dreaptă",
+     "o strică valorile extreme",
+     "tcp.len cu mqtt.len: 0,274"
+    ]
+   ]
+  },
+  {
    "tip": "parte",
    "fel": "ipoteza",
    "titlu": "Ipoteza"
@@ -51,7 +88,7 @@ const date: Capitol = {
    "puncte": [
     "Metoda: corelația Spearman, pe ranguri;",
     "7.1 corelația fiecărei perechi, pe tot setul;",
-    "7.2 perechile numerice cele mai corelate, cu R și p;",
+    "7.2 perechile numerice cele mai corelate, cu ρ și p;",
     "7.3 aceleași corelații, separat pe fiecare clasă;",
     "7.4 corelația Pearson pentru perechile folosite în regresii."
    ]
@@ -97,8 +134,8 @@ const date: Capitol = {
    "start": 1,
    "elemente": [
     "valorile fiecărei variabile se înlocuiesc cu rangul lor (cea mai mică primește rangul 1; valorile egale primesc media rangurilor lor);",
-    "pe ranguri se aplică formula de corelație (secțiunea 4); fără valori egale, ea devine R = 1 - 6 · suma d² / (n · (n² - 1)), cu d = diferența dintre cele două ranguri ale aceluiași pachet;",
-    "R = 1: cele două variabile cresc mereu împreună; R = 0: nicio legătură; R = -1: când una crește, cealaltă scade."
+    "pe ranguri se aplică formula de corelație (capitolul 4); fără valori egale, ea devine ρ = 1 - 6 · suma d² / (n · (n² - 1)), cu d = diferența dintre cele două ranguri ale aceluiași pachet;",
+    "ρ = 1: cele două variabile cresc mereu împreună; ρ = 0: nicio legătură; ρ = -1: când una crește, cealaltă scade."
    ]
   },
   {
@@ -113,13 +150,18 @@ const date: Capitol = {
    "elemente": [
     "rangurile lui tcp.len: 1, 2, 3, 4; rangurile lui mqtt.len: 1, 3, 4, 2;",
     "d = 0, -1, -1, 2, deci suma d² = 0 + 1 + 1 + 4 = 6;",
-    "R = 1 - 6 · 6 / (4 · 15) = 1 - 36 / 60 = 0,40: o legătură slabă, pentru că al patrulea pachet strică ordinea."
+    "ρ = 1 - 6 · 6 / (4 · 15) = 1 - 36 / 60 = 0,40: o legătură moderată, pentru că al patrulea pachet strică ordinea."
    ]
   },
   {
    "tip": "text",
+   "eticheta": "Exemplu",
+   "text": "valorile (1, 5, 100) și (2, 3, 4) au aceeași ordine, deci Spearman = 1. Pearson, pe valorile reale, dă 0,88, pentru că 100 e mult mai departe decât celelalte valori."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce înseamnă",
-   "text": "R spune cât de des cele două variabile cresc împreună. p spune doar dacă legătura poate fi întâmplătoare; cu sute de mii de pachete, p iese mic chiar și la R mic."
+   "text": "ρ spune cât de strâns cresc împreună cele două variabile (pe ranguri). p spune doar dacă legătura poate fi întâmplătoare; cu sute de mii de pachete, p iese mic chiar și la ρ mic."
   },
   {
    "tip": "sectiune",
@@ -143,6 +185,11 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare pătrat e o pereche de variabile (rândul și coloana lui). Culoarea și numărul din pătrat arată corelația: albastru închis = legate puternic (aproape de 1), alb = fără legătură (0)."
+  },
+  {
+   "tip": "text",
    "text": "Între numerice, tcp.len și mqtt.len au corelația 0,94 (cea mai puternică pereche). tcp.time_delta are cel mult 0,25 cu celelalte, iar mqtt.kalive 0,12 cu mqtt.len. mqtt.qos are 0,66 cu mqtt.len și 0,65 cu tcp.len."
   },
   {
@@ -152,17 +199,17 @@ const date: Capitol = {
   },
   {
    "tip": "sectiune",
-   "titlu": "7.2 Perechile numerice cele mai corelate, cu R și p"
+   "titlu": "7.2 Perechile numerice cele mai corelate, cu ρ și p"
   },
   {
    "tip": "text",
    "eticheta": "De ce",
-   "text": "harta dă doar cifra; graficul arată cum stau pachetele pentru cele 3 perechi numerice cu cel mai mare R."
+   "text": "harta dă doar cifra; graficul arată cum stau pachetele pentru cele 3 perechi numerice cu cel mai mare ρ."
   },
   {
    "tip": "text",
    "eticheta": "Pe datele noastre",
-   "text": "R și p sunt calculate pe toate cele 330.926 de pachete; graficul desenează doar 8.000 de pachete alese la întâmplare, ca punctele să se vadă. Pe axe sunt rangurile, iar linia este dreapta care trece cel mai aproape de puncte. Punctele se aliniază în benzi orizontale și verticale pentru că multe pachete au aceeași valoare."
+   "text": "ρ și p sunt calculate pe toate cele 330.926 de pachete; graficul desenează doar 8.000 de pachete alese la întâmplare, ca punctele să se vadă. Pe axe sunt rangurile, iar linia este dreapta care trece cel mai aproape de puncte. Punctele se aliniază în benzi orizontale și verticale pentru că multe pachete au aceeași valoare."
   },
   {
    "tip": "imagine",
@@ -172,8 +219,13 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare punct e un pachet, desenat după rangurile lui la cele două variabile (locul în ordine, nu valoarea). Dacă punctele urcă de-a lungul unei linii, variabilele cresc împreună; dacă sunt împrăștiate, nu sunt legate."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce înseamnă",
-   "text": "p este sub 0,001 la toate trei, dar doar prima pereche (tcp.len cu mqtt.len, R = 0,94) are legătură puternică. Cu atâtea rânduri, p mic nu înseamnă corelație mare."
+   "text": "p este sub 0,001 la toate trei, dar doar prima pereche (tcp.len cu mqtt.len, ρ = 0,94) are legătură puternică. Cu atâtea rânduri, p mic nu înseamnă corelație mare."
   },
   {
    "tip": "sectiune",
@@ -248,7 +300,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Perechile cu corelație 1 (rotunjit: R de cel puțin 0,995) sunt mai multe la atacuri:"
+   "text": "Perechile cu corelație 1 (rotunjit: ρ de cel puțin 0,995) sunt mai multe la atacuri:"
   },
   {
    "tip": "lista",
@@ -279,7 +331,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Cum se calculează",
-   "text": "r = suma (x - x̄)(y - ȳ) / rădăcina din [suma (x - x̄)² · suma (y - ȳ)²] (secțiunea 4)."
+   "text": "r = suma (x - x̄)(y - ȳ) / rădăcina din [suma (x - x̄)² · suma (y - ȳ)²] (capitolul 4)."
   },
   {
    "tip": "text",
@@ -289,7 +341,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Pe datele noastre",
-   "text": "perechile din regresiile liniare (secțiunea 8) și fiecare variabilă folosită la regresia logistică (secțiunea 9), față de ținta binară is_attack (0 = legitimate, 1 = oricare dintre atacuri)."
+   "text": "perechile din regresiile liniare (capitolul 8) și fiecare variabilă folosită la regresia logistică (capitolul 9), față de ținta binară is_attack (0 = legitimate, 1 = oricare dintre atacuri)."
   },
   {
    "tip": "text",
@@ -321,7 +373,7 @@ const date: Capitol = {
     "Pereche",
     "Pearson r",
     "p (Pearson)",
-    "Spearman R",
+    "Spearman ρ",
     "p (Spearman)"
    ],
    "randuri": [
@@ -361,6 +413,13 @@ const date: Capitol = {
      "sub 0,001"
     ],
     [
+     "mqtt.qos cu mqtt.len",
+     "0,988",
+     "sub 0,001",
+     "0,664",
+     "sub 0,001"
+    ],
+    [
      "tcp.time_delta cu is_attack",
      "-0,091",
      "sub 0,001",
@@ -391,6 +450,11 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "două hărți de corelație pentru aceleași perechi, una cu Pearson (pe valorile reale) și una cu Spearman (pe ranguri); titlul fiecăreia spune care e. Unde culorile diferă, valorile extreme schimbă rezultatul."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce înseamnă",
    "text": ""
   },
@@ -410,14 +474,36 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
+   "tip": "tabel",
+   "antet": [
+    "Ce credem",
+    "Cum verificăm",
+    "Rezultat",
+    "Verdict"
+   ],
+   "randuri": [
+    [
+     "tcp.len și mqtt.len sunt puternic legate.",
+     "corelația Spearman (7.1)",
+     "ρ = 0,94, p sub 0,001",
+     "Confirmată. Pe valorile reale (Pearson) legătura e slabă, 0,274, din cauza pachetelor flood (7.4)."
+    ],
+    [
+     "Câmpurile de conectare sunt legate între ele.",
+     "corelația Spearman (7.1)",
+     "corelație 1",
+     "Confirmată. Într-un model ajunge o singură variabilă din grup."
+    ]
+   ]
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "H0 se respinge: tcp.len și mqtt.len sunt puternic legate pe ranguri (R = 0,94, p sub 0,001, 7.1). Pe valorile reale legătura este slabă (Pearson 0,274, 7.4), din cauza pachetelor flood foarte mari. Din această pereche pornește regresia 1 (8.1).",
+    "Din perechea tcp.len și mqtt.len pornește regresia 1 (8.1); pe valorile reale legătura este slabă din cauza pachetelor flood foarte mari.",
     "tcp.time_delta are corelații slabe cu celelalte 12 variabile (cel mult 0,25). Regresia 2 (8.2) verifică dacă timpul se poate totuși prezice din lungimi.",
-    "mqtt.qos are 0,66 cu mqtt.len pe ranguri, iar pe valorile reale chiar 0,99 (Pearson, graficul din 7.4): toate cele 54.431 de pachete cu mqtt.qos = 1 sunt dos și au mqtt.len între 149 și 190, iar restul au în medie 4,7.",
-    "Grupul de conectare are corelație 1 (7.1). Într-un model ar ajunge o singură variabilă din grup.",
+    "mqtt.qos are 0,66 cu mqtt.len pe ranguri, iar pe valorile reale chiar 0,99 (Pearson, tabelul din 7.4): toate cele 54.431 de pachete cu mqtt.qos = 1 sunt dos și au mqtt.len între 149 și 190, iar restul au în medie 4,7. De aici VIF-ul mare (42,5 și 42,9) de la regresia logistică (9.2).",
     "Pe clase, corelația tcp.len cu mqtt.len diferă (1,00 la normal, 0,60 la slowite, 7.3). De aici regresia 3 (8.3), pe fiecare clasă."
    ]
   }

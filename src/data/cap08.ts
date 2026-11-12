@@ -10,7 +10,68 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Din capitolul 7 știm că tcp.len și mqtt.len cresc împreună (R = 0,94). Acum vedem dacă o valoare a unui pachet se poate calcula din alta. Exemplul principal sunt cele două lungimi: tcp.len este mărimea conținutului TCP (plicul), iar mqtt.len este lungimea mesajului MQTT dus în el (scrisoarea din plic). Dacă scrisoarea ocupă mereu aceeași parte din plic, din mărimea plicului aflăm lungimea scrisorii fără s-o mai citim. La un atac, scrisoarea poate lipsi sau poate fi ruptă în mai multe plicuri, iar regula nu mai merge; tocmai asta ne interesează."
+   "text": "Din capitolul 7 știm că tcp.len și mqtt.len cresc împreună (ρ = 0,94). Acum vedem dacă o valoare a unui pachet se poate calcula din alta. Exemplul principal sunt cele două lungimi: tcp.len este mărimea conținutului TCP (plicul), iar mqtt.len este lungimea mesajului MQTT dus în el (scrisoarea din plic). Dacă scrisoarea ocupă mereu aceeași parte din plic, din mărimea plicului aflăm lungimea scrisorii fără s-o mai citim. La un atac, scrisoarea poate lipsi sau poate fi ruptă în mai multe plicuri, iar regula nu mai merge; tocmai asta ne interesează."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "pe tot setul, dreapta dintre tcp.len și mqtt.len explică doar 7,5% (R² = 0,075), pentru că pachetele flood sunt uriașe, dar au mesaje mici. Timpul dintre pachete nu se poate prezice din lungimi (R² = 0,0014). Pe fiecare clasă separat, la traficul normal R² = 0,997, iar la atacuri legătura se strică."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "o dreaptă pe tot setul nu merge; abaterea de la dreapta traficului normal e un semn de atac."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Regresie liniară",
+     "o dreaptă care prezice o variabilă (Y) din alta (X)",
+     "se alege dreapta cu cea mai mică eroare",
+     "mqtt.len = 29 + 0,0179 · tcp.len"
+    ],
+    [
+     "Intercept (β0)",
+     "valoarea prezisă când X = 0",
+     "locul unde dreapta taie axa verticală",
+     "29 bytes"
+    ],
+    [
+     "Panta (β1)",
+     "cu cât crește Y când X crește cu 1",
+     "pozitivă = cresc împreună; 0 = fără legătură",
+     "0,0179: +100 bytes la pachet → +1,8 la mesaj"
+    ],
+    [
+     "Reziduu",
+     "valoarea reală minus cea prezisă",
+     "mic = dreapta prezice bine pachetul",
+     "real 11, prezis 29,2 → -18,2"
+    ],
+    [
+     "R²",
+     "cât din variația lui Y explică dreapta, față de a spune mereu media",
+     "de la 0 la 1; 1 = perfect",
+     "0,075 pe tot setul, 0,997 la normal"
+    ],
+    [
+     "Durbin-Watson",
+     "dacă reziduurile pachetelor vecine sunt legate între ele",
+     "aproape de 2 = nelegate",
+     "2,00 la regresia 1"
+    ]
+   ]
   },
   {
    "tip": "parte",
@@ -119,7 +180,7 @@ const date: Capitol = {
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "relația este liniară (scatter);",
+    "relația este liniară (graficul cu puncte, numit scatter);",
     "nu sunt valori extreme care trag dreapta (scatter);",
     "reziduurile au aceeași împrăștiere pe toată dreapta (graficul reziduurilor);",
     "reziduurile sunt aproximativ normale (histograma reziduurilor, fără 1% din valori la fiecare capăt, ca forma să se vadă, cu curba normală suprapusă, plus asimetria și kurtosis între -1 și 1);",
@@ -130,7 +191,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Ce înseamnă",
-   "text": "R² aproape de 1 arată că dreapta merge; p arată doar dacă panta este diferită de 0. La 8.1 și 8.2 urmăm aceeași ordine: scatter, coeficienții cu p și R², condițiile, predicția. La 8.3 doar calculăm dreapta pe fiecare clasă și comparăm pantele și R²."
+   "text": "R² aproape de 1 arată că dreapta merge; p arată doar dacă panta este diferită de 0. La 8.1 și 8.2 urmăm aceeași ordine: scatter, coeficienții cu p și R², condițiile, predicția."
   },
   {
    "tip": "sectiune",
@@ -162,6 +223,11 @@ const date: Capitol = {
    "src": "reg1_scatter.png",
    "latime": 1430,
    "inaltime": 546
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare punct e un pachet (tcp.len pe orizontală, mqtt.len pe verticală), iar linia roșie e dreapta calculată. În stânga sunt valorile reale, în dreapta valorile după logaritm, care strânge valorile foarte mari. Cu cât punctele stau mai aproape de linie, cu atât R² e mai mare."
   },
   {
    "tip": "tabel",
@@ -231,6 +297,11 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "reziduul e diferența dintre valoarea reală și cea prezisă. În stânga, fiecare punct e un pachet: dacă dreapta ar fi potrivită, punctele ar forma un nor uniform în jurul liniei roșii de la 0. În dreapta e histograma reziduurilor, cu curba normală (roșie) peste ea: barele ar trebui să urmeze curba. Sus sunt valorile reale, jos cele după logaritm."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce înseamnă",
    "text": "dreapta pe tot setul prezice prost:"
   },
@@ -239,7 +310,7 @@ const date: Capitol = {
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "corelația Spearman dintre cele două variabile era 0,94 (secțiunea 7), dar R² pe valori brute este doar 0,075. Spearman măsoară dacă cresc împreună, pe ranguri, iar regresia cere o dreaptă pe valorile reale;",
+    "corelația Spearman dintre cele două variabile era 0,94 (capitolul 7), dar R² pe valori brute este doar 0,075. Spearman măsoară dacă cresc împreună, pe ranguri, iar regresia cere o dreaptă pe valorile reale;",
     "cauza se vede în scatter: o parte din pachetele dos au mqtt.len în jur de 170, la valori foarte diferite ale lui tcp.len, iar pachetele flood mari (tcp.len peste 1.460, până la 32.768) au mqtt.len de cel mult 16. Aceste grupuri și valori extreme trag dreapta, deci condițiile despre relația liniară și despre valorile extreme nu sunt respectate;",
     "reziduurile (graficul de mai sus) nu au împrăștiere constantă și nu sunt normale: histograma nu urmează curba normală, iar asimetria lor este 1,06 și kurtosis 9,5 la valorile brute, respectiv -0,73 și 5,9 după logaritm. Nici condițiile despre împrăștierea și forma reziduurilor nu sunt respectate."
    ]
@@ -276,6 +347,11 @@ const date: Capitol = {
    "inaltime": 450
   },
   {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare punct e un pachet: lungimea pe orizontală, timpul de la pachetul anterior pe verticală. Dacă timpul ar depinde de lungime, punctele ar urma o linie."
+  },
+  {
    "tip": "tabel",
    "antet": [
     "Parametru",
@@ -294,7 +370,7 @@ const date: Capitol = {
      "tcp.len (β1)",
      "1,07e-05",
      "0,043 (*)",
-     "La fiecare byte în plus în tcp.len, timpul crește cu 0,00001 secunde, ținând mqtt.len fix. Efect neglijabil, iar p trece abia de 0,05."
+     "La fiecare byte în plus în tcp.len, timpul crește cu 0,00001 secunde, ținând mqtt.len fix. Efect neglijabil, iar p este abia sub 0,05."
     ],
     [
      "mqtt.len (β2)",
@@ -323,6 +399,11 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "reziduurile (real minus prezis) pentru fiecare pachet și histograma lor; un model potrivit ar avea un nor uniform în jurul lui 0 și barele pe curba normală."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce înseamnă",
    "text": "regresia nu are valoare predictivă (R² = 0,0014). Timpul dintre pachete nu se poate prezice din dimensiunea lor, în acord cu corelațiile Spearman de cel mult 0,25 din secțiunea 7. Modelul prezice chiar timpi negativi pentru 44 de pachete (până la -0,85 secunde), deși un timp nu poate fi negativ. Reziduurile sunt departe de normal: histograma nu urmează curba normală (asimetria 20,7, kurtosis 432). Graficul reziduurilor arată și câteva pachete cu reziduuri de aproape 60 de secunde, iar restul stau strânse lângă 0: există valori extreme, iar împrăștierea nu este aceeași, deci nici condițiile despre valorile extreme și despre împrăștierea reziduurilor nu sunt respectate."
   },
@@ -338,7 +419,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Ipoteza",
-   "text": "relația dintre tcp.len și mqtt.len este diferită la traficul normal și la fiecare atac. Comparăm pantele și R² între clase, fără un test formal între pante."
+   "text": "relația dintre tcp.len și mqtt.len este diferită la traficul normal și la fiecare atac."
   },
   {
    "tip": "pas",
@@ -362,6 +443,11 @@ const date: Capitol = {
    "src": "reg3_pe_clase.png",
    "latime": 1690,
    "inaltime": 910
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "câte un grafic pentru fiecare clasă: pachetele sunt puncte (tcp.len pe orizontală, mqtt.len pe verticală), iar dreapta clasei e roșie. În titlu sunt panta și R². Fiecare grafic are altă scară pe axe."
   },
   {
    "tip": "tabel",
@@ -435,7 +521,7 @@ const date: Capitol = {
    "start": 1,
    "elemente": [
     "normal (legitimate): dreapta se potrivește aproape perfect (R² = 0,997, panta 0,850). Aici tcp.len ia doar valori între 0 și 20, iar mqtt.len urmează tcp.len;",
-    "la toate atacurile relația se strică: R² este 0,405 la dos, 0,167 la bruteforce, 0,148 la malformed și 0,002 la slowite (panta este chiar negativă, -0,045). La flood R² este 0,762, dar panta este practic 0 (0,0004): mqtt.len rămâne în jur de 15 oricât de mare este tcp.len. R² iese totuși mare pentru că flood are două grupuri, 310 pachete goale (tcp.len și mqtt.len 0) și 293 de pachete uriașe cu mqtt.len de cel mult 16, iar dreapta le unește;",
+    "la toate atacurile relația se strică: R² este 0,405 la dos, 0,167 la bruteforce, 0,148 la malformed și 0,002 la slowite (panta este chiar negativă, -0,045). La flood R² este 0,762, dar panta este practic 0 (0,0004): mqtt.len rămâne în jur de 15 oricât de mare este tcp.len. R² iese totuși mare pentru că flood are două grupuri mari, 310 pachete goale (tcp.len și mqtt.len 0) și 293 de pachete uriașe cu mqtt.len de cel mult 16 (celelalte 10 au alte lungimi), iar dreapta le unește;",
     "după logaritm, R² crește mult la bruteforce (0,979), malformed (0,903) și flood (0,964), dar rămâne mic la slowite (0,084). Transformarea ajută la unele clase, nu la toate;",
     "față de secțiunea 7.3: corelația Spearman era 1,00 la bruteforce și malformed, dar R² liniar pe valori brute este 0,167 și 0,148. Spearman arată că variabilele cresc împreună, iar regresia liniară cere ca punctele să stea pe o dreaptă, ceea ce nu se întâmplă cu valori extreme."
    ]
@@ -450,14 +536,41 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
+   "tip": "tabel",
+   "antet": [
+    "Ce credem",
+    "Cum verificăm",
+    "Rezultat",
+    "Verdict"
+   ],
+   "randuri": [
+    [
+     "tcp.len determină mqtt.len.",
+     "dreapta pe tot setul (8.1)",
+     "R² = 0,075: dreapta explică doar 7,5%",
+     "Parțial. Legătura există, dar pe tot setul e slabă; la traficul normal R² = 0,997 (8.3)."
+    ],
+    [
+     "Timpul dintre pachete depinde de lungimea lor.",
+     "regresia 2 (8.2)",
+     "R² = 0,0014",
+     "Infirmată. Lungimile nu explică timpul."
+    ],
+    [
+     "Legătura dintre lungimi e alta la atacuri decât la normal.",
+     "o dreaptă pe fiecare clasă (8.3)",
+     "R² = 0,997 la normal; între 0,002 și 0,762 la atacuri",
+     "Confirmată. Toate pachetele normale stau la cel mult 2 bytes de dreapta lor; la atacuri legătura se strică."
+    ]
+   ]
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "Pe tot setul, o dreaptă leagă slab tcp.len de mqtt.len: R² = 0,075, adică dreapta explică doar 7,5% din variație. După logaritm, R² urcă la 0,843, dar condițiile regresiei tot nu sunt respectate (8.1).",
-    "Timpul dintre pachete nu se poate prezice din lungimea lor (R² = 0,0014, 8.2).",
-    "La traficul normal, mqtt.len urmează aproape perfect tcp.len (R² = 0,997): toate pachetele normale stau la cel mult 2 bytes de dreapta lor. La atacuri legătura se strică (R² între 0,002 și 0,762, 8.3).",
-    "Dreapta traficului normal nu este însă un detector bun: majoritatea pachetelor bruteforce (90%), malformed (97%) și slowite (78%) stau și ele pe ea, mai ales pachetele goale. Se abat de la ea mai ales pachetele dos (doar 38% pe dreaptă) și flood (51%).",
+    "După logaritm, R² al dreptei din 8.1 urcă la 0,843, dar condițiile regresiei tot nu sunt respectate.",
+    "Dreapta traficului normal nu este însă un detector bun: majoritatea pachetelor bruteforce (90%), malformed (97%) și slowite (78%) stau și ele pe ea (la cel mult 2 bytes de ea, ca toate pachetele normale), mai ales pachetele goale. Se abat de la ea mai ales pachetele dos (doar 38% pe dreaptă) și flood (51%).",
     "Valoarea p (sub 0,001 aproape peste tot; doar tcp.len are 0,043 la 8.2) nu ajută aici: cu 330.926 de pachete, aproape orice pantă iese „diferită de 0”. Ce contează este R²."
    ]
   }

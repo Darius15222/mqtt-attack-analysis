@@ -13,6 +13,43 @@ const date: Capitol = {
    "text": "Căutăm articole care au analizat tot MQTTset, ca să ne comparăm rezultatele cu ale lor (capitolul 12)."
   },
   {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "am găsit 5 articole care folosesc MQTTset; toate construiesc modele care recunosc atacurile, iar trei aleg variabilele și după corelație."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "articolele au aceleași date, dar alte clase și altă împărțire a datelor, deci la final comparăm mai ales variabilele, nu cifrele."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Model",
+     "o regulă calculată din date care spune, pentru un pachet nou, dacă e atac",
+     "se notează după cât de des are dreptate (Accuracy, capitolul 10)",
+     "arborele de decizie din capitolul 10"
+    ],
+    [
+     "Alegerea variabilelor după corelație",
+     "se păstrează doar variabilele care nu repetă informația altora",
+     "corelația e explicată în capitolul 7",
+     "tcp.len și mqtt.len spun aproape același lucru"
+    ]
+   ]
+  },
+  {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",

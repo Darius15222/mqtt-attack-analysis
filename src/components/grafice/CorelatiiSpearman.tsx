@@ -53,7 +53,7 @@ export default function CorelatiiSpearman() {
     tooltip: {
       formatter: (p: { seriesIndex: number; value: [number, number, number] }) => {
         const [coloana, rand, r] = p.value
-        return `${nume[rand]}<br/>${nume[coloana]}<br/><b>${p.seriesIndex === 1 ? 'constantă: nu se poate calcula' : `R = ${formatNumar(r, 2)}`}</b>`
+        return `${nume[rand]}<br/>${nume[coloana]}<br/><b>${p.seriesIndex === 1 ? 'constantă: nu se poate calcula' : `ρ = ${formatNumar(r, 2)}`}</b>`
       },
     },
     series: [

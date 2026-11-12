@@ -10,7 +10,68 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Din capitolul 10 știm că arborele spune doar „atac” sau „normal”. Regulile de asociere spun și ce atac. O regulă de asociere are forma DACĂ A, ATUNCI B: pachetele care au valorile din A au des și valoarea B. A (stânga) și B (dreapta) sunt seturi de itemi, iar un item este o pereche variabilă=valoare, de exemplu tcp.flags=RST. Căutăm regulile care au un atac în dreapta, adică combinațiile de valori care anunță atacul. Formulele sunt în secțiunea 4."
+   "text": "Din capitolul 10 știm că arborele spune doar „atac” sau „normal”. Regulile de asociere spun și ce atac. O regulă are forma DACĂ A, ATUNCI B: pachetele cu valorile din A au des și valoarea B. Căutăm regulile care au un atac în dreapta."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "pentru fiecare regulă măsurăm cât de des apare (support), cât de des are dreptate (confidence) și de câte ori face atacul mai probabil (lift). Fiecare atac are o regulă sigură în cel puțin 96% din cazuri."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "la atacurile rare pragul de support trebuie coborât, altfel regulile lor nu apar deloc."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Tranzacție, item",
+     "tranzacție = un pachet scris ca listă de itemi; item = o pereche variabilă=valoare",
+     "fiecare pachet are 7 itemi",
+     "flags=SYN"
+    ],
+    [
+     "Regulă A → B",
+     "DACĂ pachetul are A, ATUNCI are des și B",
+     "B este de obicei un atac",
+     "flags=FIN+ACK → bruteforce"
+    ],
+    [
+     "Support",
+     "cât din toate pachetele au și A, și B",
+     "cât de des apare regula",
+     "0,0098"
+    ],
+    [
+     "Confidence",
+     "din pachetele cu A, câte au și B",
+     "cât de des are regula dreptate; 1 = mereu",
+     "0,775"
+    ],
+    [
+     "Lift",
+     "confidence împărțit la cât de des apare B în general",
+     "peste 1 = A face B mai probabil",
+     "17,7"
+    ],
+    [
+     "Apriori",
+     "algoritmul care găsește combinațiile frecvente fără să le numere pe toate",
+     "sare peste combinațiile care sigur sunt rare",
+     "la perechi: 153 numărate în loc de 666"
+    ]
+   ]
   },
   {
    "tip": "parte",
@@ -57,8 +118,7 @@ const date: Capitol = {
    "eticheta": "Decizii",
    "text": "",
    "puncte": [
-    "Apriori din biblioteca mlxtend (Python);",
-    "o tranzacție este un pachet, pentru că setul de date nu are un identificator de conexiune sau de sesiune care să grupeze pachetele;",
+    "o tranzacție este un pachet, pentru că datele nu spun care pachete sunt din aceeași conexiune;",
     "folosim toate pachetele, ca la arbori."
    ]
   },
@@ -78,7 +138,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Apriori lucrează cu itemi, nu cu numere, deci variabilele numerice se împart în intervale. Am folosit aceleași variabile ca la arbori (10.2), fără mqtt.ver, care marchează aceleași pachete ca mqtt.msgtype = CONNECT. În tabele, variabilele apar cu numele scurte din prima coloană."
+   "text": "Variabilele numerice se împart în intervale. Folosim aceleași variabile ca la arbori (10.2), fără mqtt.ver; în tabele apar cu numele scurte din prima coloană."
   },
   {
    "tip": "tabel",
@@ -91,7 +151,7 @@ const date: Capitol = {
     [
      "tcp.flags (flags)",
      "8: ACK, PSH+ACK, FIN+ACK, SYN, SYN+ACK, RST, FIN+PSH+ACK, RST+ACK",
-     "Codurile hex traduse în flaguri (secțiunea 4)."
+     "Codurile hex traduse în flaguri (capitolul 4)."
     ],
     [
      "mqtt.msgtype (msgtype)",
@@ -106,12 +166,12 @@ const date: Capitol = {
     [
      "tcp.len (len)",
      "4: 0, 1-20, 21-1460, 1461+",
-     "Limita 20 este cea din 10.4. 1.460 este cel mai mare segment TCP obișnuit într-o rețea Ethernet: cele mai mari mesaje dos (23.673) au exact 1.460, iar peste această limită sunt numai pachete flood (293)."
+     "Limita 20 este cea din 10.4. 1.460 este cel mai mare segment TCP obișnuit într-o rețea Ethernet: 23.673 de pachete dos au exact 1.460 de bytes, cea mai mare lungime la dos, iar peste această limită sunt numai pachete flood (293)."
     ],
     [
      "tcp.time_delta (delta)",
      "4: Q1 (≤ 3 µs), Q2 (≤ 26 µs), Q3 (≤ 170 µs), Q4 (mai mult)",
-     "Limitele sunt cuartilele. În Q1 intră 33% din pachete, nu 25%, pentru că 10% au exact 3 µs."
+     "Limitele sunt cuartilele lui tcp.time_delta (5.3), de aici numele: Q1 = sfertul cu timpii cei mai mici, Q4 = cel cu cei mai mari. În Q1 intră 33% din pachete, nu 25%, pentru că 10% au exact 3 µs."
     ],
     [
      "target",
@@ -122,36 +182,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "În total sunt 37 de itemi. Fiecare pachet are exact 7 itemi, câte unul din fiecare variabilă. Primele pachete din set, ca tranzacții:"
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "Pachet",
-    "Tranzacția (itemii pachetului)"
-   ],
-   "randuri": [
-    [
-     "1",
-     "flags=ACK, msgtype=fără MQTT, qos=0, dupflag=0, len=0, delta=Q2, target=legitimate"
-    ],
-    [
-     "2",
-     "flags=PSH+ACK, msgtype=PUBLISH, qos=1, dupflag=0, len=21-1460, delta=Q1, target=dos"
-    ],
-    [
-     "3",
-     "flags=PSH+ACK, msgtype=PUBACK, qos=0, dupflag=0, len=1-20, delta=Q1, target=dos"
-    ],
-    [
-     "4",
-     "flags=PSH+ACK, msgtype=PUBLISH, qos=1, dupflag=0, len=21-1460, delta=Q1, target=dos"
-    ],
-    [
-     "5",
-     "flags=ACK, msgtype=fără MQTT, qos=0, dupflag=0, len=0, delta=Q2, target=legitimate"
-    ]
-   ]
+   "text": "În total sunt 37 de itemi; fiecare pachet are exact 7, câte unul din fiecare variabilă. Exemplu: primul pachet din set este {flags=ACK, msgtype=fără MQTT, qos=0, dupflag=0, len=0, delta=Q2, target=legitimate}."
   },
   {
    "tip": "imagine",
@@ -161,8 +192,13 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare bară e un item (variabilă=valoare), iar lungimea ei e support-ul, adică procentul de pachete care îl au. Linia punctată e pragul de 5% (support 0,05) din 11.3."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce arată",
-   "text": "dupflag=0 și qos=0 sunt în majoritatea pachetelor, deci apar în multe reguli fără să spună ceva despre atacuri. Itemii atacurilor mici (bruteforce 4,38%, malformed 3,30%, slowite 2,78%, flood 0,19%) sunt sub linia de 5%."
+   "text": "dupflag=0 (94%) și qos=0 (84%) apar în aproape toate pachetele, deci nu spun nimic despre atacuri. Atacurile mici (bruteforce, malformed, slowite, flood) sunt sub linia de 5%."
   },
   {
    "tip": "sectiune",
@@ -225,49 +261,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Pașii pe datele noastre, la rularea din 11.3 (support minim 0,05):"
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "Itemi în set (k)",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8"
-   ],
-   "randuri": [
-    [
-     "Candidați",
-     "37",
-     "153",
-     "232",
-     "211",
-     "127",
-     "42",
-     "6",
-     "0"
-    ],
-    [
-     "Frecvenți",
-     "18",
-     "94",
-     "197",
-     "210",
-     "127",
-     "42",
-     "6",
-     "0"
-    ]
-   ]
-  },
-  {
-   "tip": "text",
-   "text": "Fără Apriori, la k = 2 s-ar număra toate cele 666 de perechi din cei 37 de itemi; așa se numără doar 153."
+   "text": "Pe datele noastre, la perechi Apriori numără doar 153 de combinații, în loc de toate cele 666 posibile din cei 37 de itemi."
   },
   {
    "tip": "subtitlu",
@@ -300,7 +294,7 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizie",
-   "text": "păstrăm doar regulile cu un item în dreapta și scoatem regulile care nu spun nimic nou: {qos=1} → dos are deja confidence 1, deci {qos=1, msgtype=PUBLISH} → dos este în plus."
+   "text": "păstrăm doar regulile cu un item în dreapta și scoatem regulile care nu spun nimic nou: {qos=1} → dos are deja confidence 1, deci {qos=1, msgtype=PUBLISH} → dos este în plus. O regulă cu un item în plus rămâne doar dacă are confidence mai mare: la bruteforce, delta=Q4 crește confidence de la 0,9615 la 0,9619, deci rămân amândouă."
   },
   {
    "tip": "sectiune",
@@ -315,141 +309,18 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "intrare",
    "eticheta": "Intrare",
-   "text": "support minim 0,05, adică o combinație trebuie să apară în cel puțin 16.547 de pachete, și confidence minim 0,6."
-  },
-  {
-   "tip": "pas",
-   "fel": "decizie",
-   "eticheta": "Decizie",
-   "text": "",
-   "puncte": [
-    "support 0,05, adică cel puțin un pachet din 20, ca regulile să descrie tipare frecvente, nu cazuri izolate;",
-    "confidence 0,6, ca regula să aibă dreptate la majoritatea pachetelor care îndeplinesc partea stângă."
-   ]
+   "text": "support minim 0,05 (o combinație trebuie să apară în cel puțin 16.547 de pachete, adică un pachet din 20) și confidence minim 0,6 (regula are dreptate la majoritatea pachetelor)."
   },
   {
    "tip": "pas",
    "fel": "iesire",
    "eticheta": "Ieșire",
-   "text": "1.861 de reguli cu un item în dreapta; după scoaterea celor redundante rămân 308:",
-   "puncte": [
-    "70 cu 2 itemi;",
-    "152 cu 3;",
-    "75 cu 4;",
-    "11 cu 5."
-   ]
-  },
-  {
-   "tip": "text",
-   "text": "Cele 10 reguli cu cel mai mare lift:"
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "Stânga (DACĂ)",
-    "Dreapta (ATUNCI)",
-    "Support",
-    "Confidence",
-    "Lift",
-    "Pachete"
-   ],
-   "randuri": [
-    [
-     "delta=Q1, flags=PSH+ACK, qos=0, target=dos",
-     "msgtype=PUBACK",
-     "0,072",
-     "1,000",
-     "8,51",
-     "23.710"
-    ],
-    [
-     "delta=Q1, len=1-20, target=dos",
-     "msgtype=PUBACK",
-     "0,060",
-     "1,000",
-     "8,51",
-     "19.742"
-    ],
-    [
-     "len=1-20, target=dos",
-     "msgtype=PUBACK",
-     "0,085",
-     "0,999",
-     "8,50",
-     "28.235"
-    ],
-    [
-     "flags=PSH+ACK, qos=0, target=dos",
-     "msgtype=PUBACK",
-     "0,117",
-     "0,999",
-     "8,50",
-     "38.841"
-    ],
-    [
-     "delta=Q1, flags=PSH+ACK, qos=0",
-     "msgtype=PUBACK",
-     "0,072",
-     "0,994",
-     "8,46",
-     "23.710"
-    ],
-    [
-     "delta=Q1, flags=PSH+ACK, len=1-20",
-     "msgtype=PUBACK",
-     "0,060",
-     "0,994",
-     "8,46",
-     "19.742"
-    ],
-    [
-     "delta=Q1, len=1-20",
-     "msgtype=PUBACK",
-     "0,060",
-     "0,994",
-     "8,46",
-     "19.742"
-    ],
-    [
-     "msgtype=PUBLISH, target=dos",
-     "qos=1",
-     "0,164",
-     "1,000",
-     "6,08",
-     "54.431"
-    ],
-    [
-     "flags=ACK, len=21-1460, target=dos",
-     "qos=1",
-     "0,072",
-     "1,000",
-     "6,08",
-     "23.673"
-    ],
-    [
-     "dupflag=1",
-     "qos=1",
-     "0,057",
-     "1,000",
-     "6,08",
-     "18.707"
-    ]
-   ]
+   "text": "308 reguli, după scoaterea celor care nu spun nimic nou."
   },
   {
    "tip": "text",
    "eticheta": "Ce arată",
-   "text": ""
-  },
-  {
-   "tip": "lista",
-   "ordonata": false,
-   "start": 1,
-   "elemente": [
-    "regulile cu lift mare descriu atacul dos din interior: confirmările PUBACK (tcp.len 1-20, PSH+ACK, timp foarte mic) și mesajele PUBLISH cu qos = 1;",
-    "dupflag=1 → qos=1 are confidence 1: mesajele retrimise au mereu qos 1;",
-    "în dreapta, dintre clase apar doar legitimate (46 de reguli) și dos (20). Celelalte atacuri au fiecare sub 5% din pachete, deci nicio combinație cu ele nu ajunge la support 0,05."
-   ]
+   "text": "în dreapta, dintre clase apar doar legitimate și dos. Celelalte atacuri au fiecare sub 5% din pachete, deci nicio combinație cu ele nu ajunge la support 0,05."
   },
   {
    "tip": "sectiune",
@@ -458,7 +329,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "De ce",
-   "text": "la 11.3 atacurile mici nu apar, pentru că au fiecare sub 5% din pachete; aici căutăm direct regulile care se termină cu un atac."
+   "text": "la 11.3 atacurile mici nu apar; aici căutăm direct regulile care se termină cu un atac."
   },
   {
    "tip": "pas",
@@ -470,42 +341,12 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "decizie",
    "eticheta": "Decizii",
-   "text": "confidence minim 0,5: regula are dreptate în cel puțin jumătate din pachete. Support minim se dă în număr de pachete, pentru că atacurile mici nu ajung la 5%. Numărul de reguli (fără cele redundante) pentru două praguri:"
+   "text": "confidence minim 0,5 (regula are dreptate în cel puțin jumătate din pachete) și support minim 150 de pachete, pentru că atacurile mici nu ajung la 5%."
   },
   {
-   "tip": "tabel",
-   "antet": [
-    "Support minim",
-    "dos",
-    "bruteforce",
-    "malformed",
-    "slowite",
-    "flood"
-   ],
-   "randuri": [
-    [
-     "300 de pachete (0,091%)",
-     "23",
-     "7",
-     "6",
-     "7",
-     "0"
-    ],
-    [
-     "150 de pachete (0,045%)",
-     "24",
-     "7",
-     "8",
-     "7",
-     "1"
-    ]
-   ]
-  },
-  {
-   "tip": "pas",
-   "fel": "decizie",
-   "eticheta": "Decizie",
-   "text": "am ales 150. La 300, flood nu are nicio regulă: 306 dintre pachetele lui sunt ACK goale, la fel ca multe pachete normale, iar singurul grup care îl deosebește (tcp.len peste 1.460) are 293 de pachete, sub prag. 150 este aproximativ jumătate din 293. Celelalte atacuri primesc aproape aceleași reguli la ambele praguri."
+   "tip": "text",
+   "eticheta": "De ce 150 și nu 300",
+   "text": "la 300, flood nu are nicio regulă, pentru că singurul grup care îl deosebește (tcp.len peste 1.460) are doar 293 de pachete."
   },
   {
    "tip": "text",
@@ -635,10 +476,20 @@ const date: Capitol = {
    "inaltime": 1080
   },
   {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "liniile gri duc de la valori (stânga) la o regulă (cercul din mijloc), apoi la atac (dreapta). Un cerc mare înseamnă o regulă care apare des."
+  },
+  {
    "tip": "imagine",
    "src": "ar_scatter.png",
    "latime": 1800,
    "inaltime": 760
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare punct e o regulă: pe orizontală support (cât de des apare), pe verticală confidence (cât de des are dreptate). În stânga sunt toate cele 308 reguli, colorate după lift; în dreapta regulile pe atacuri, colorate după atac, cu support pe scară logaritmică."
   },
   {
    "tip": "text",
@@ -663,7 +514,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Lift-ul nu se compară între atacuri: la un atac rar poate fi mult mai mare (până la 540 la flood, față de 2,54 la dos). De aceea ordonăm după confidence."
+   "text": "Lift-ul nu se compară între atacuri: la un atac rar poate fi mult mai mare (până la 540 la flood, față de 2,5 la dos). De aceea ordonăm după confidence."
   },
   {
    "tip": "sectiune",
@@ -676,7 +527,7 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Regulile ajung la aceleași valori ca arborele din 10.4: qos=1 → dos este și prima împărțire a arborelui, iar RST, SYN, FIN cu ACK și PSH+ACK la mesajele care nu sunt PUBLISH sau ping duc în frunzele 6, 7 și 8 (atac). Arborele spune însă doar normal sau atac, iar regulile spun și ce atac. Nici regulile nu deosebesc pachetele care sunt doar ACK: cele 306 pachete flood ACK goale nu apar în nicio regulă, la fel cum arborele ratează 294 dintre ele în frunza 12."
+   "text": "Regulile ajung la aceleași valori ca arborele din 10.4: qos=1 → dos este și prima lui împărțire, iar flagurile rare, singure sau împreună cu tipul mesajului, duc și acolo în frunze de atac (6, 7 și 8). Diferența: arborele spune doar „atac”, regulile spun și ce atac. Nici regulile nu recunosc pachetele care sunt doar ACK."
   },
   {
    "tip": "parte",
@@ -684,11 +535,25 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
+   "tip": "tabel",
+   "antet": [
+    "Ce voiam să aflăm",
+    "Cum am aflat",
+    "Rezultat"
+   ],
+   "randuri": [
+    [
+     "După ce valori recunoaștem fiecare atac?",
+     "Apriori, regulile cu un atac în dreapta (11.4)",
+     "Fiecare dintre cele 5 atacuri are cel puțin o regulă cu confidence de cel puțin 0,96."
+    ]
+   ]
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "Fiecare dintre cele 5 atacuri are cel puțin o regulă cu confidence de cel puțin 0,96 (11.4).",
     "dos: qos=1 sau dupflag=1. bruteforce: mesaje CONNECT cu conținut. malformed: flagurile FIN+PSH+ACK și RST. slowite: pachete cu conținut, dar fără mesaj MQTT. flood: tcp.len peste 1.460.",
     "Regulile ajung la aceleași valori ca arborele (11.5), dar spun și ce atac este, nu doar „atac”.",
     "Nici regulile nu recunosc confirmările ACK goale ale atacurilor."

@@ -27,6 +27,61 @@ const date: Capitol = {
    "text": "MQTTset conține trafic MQTT (protocolul prin care dispozitivele IoT își trimit mesaje) dintr-o casă inteligentă simulată: senzori de temperatură, lumină, umiditate, mișcare, gaz, fum, plus un ventilator și o încuietoare trimit date unui broker (serverul care primește și distribuie mesajele). Pe lângă traficul normal, conține 5 atacuri: Flooding DoS, MQTT Publish Flood, SlowITe, Malformed Data și Brute Force Authentication."
   },
   {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "330.926 de pachete, jumătate trafic normal și jumătate din 5 atacuri (dos, flood, bruteforce, malformed, slowite)."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "normalul și atacurile sunt la egalitate, dar atacurile între ele nu: dos are 130.223 de pachete, flood doar 613."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Pachet",
+     "o bucată de date trimisă prin rețea; în tabel, un rând",
+     "fiecare pachet are 33 de variabile și o clasă",
+     "330.926 de pachete în set"
+    ],
+    [
+     "MQTT",
+     "protocolul prin care dispozitivele IoT își trimit mesaje, printr-un server central (broker)",
+     "mesajele au tipuri: conectare, publicare, confirmare",
+     "un senzor de temperatură publică valoarea măsurată"
+    ],
+    [
+     "IoT",
+     "„internetul lucrurilor”: dispozitive conectate la rețea (senzori, becuri, încuietori)",
+     "",
+     "senzorii casei simulate"
+    ],
+    [
+     "Clasă (target)",
+     "eticheta pachetului: normal (legitimate) sau unul dintre cele 5 atacuri",
+     "o vrem recunoscută din celelalte variabile",
+     "legitimate: 165.463 de pachete"
+    ],
+    [
+     "Cele 5 atacuri",
+     "dos: multe mesaje ca să blocheze serverul; flood: mesaje uriașe; bruteforce: încearcă parole la rând; malformed: pachete stricate intenționat; slowite: ține conexiunile deschise cât mai mult",
+     "fiecare lasă alte urme în pachete",
+     "dos: 130.223 de pachete; flood: 613"
+    ]
+   ]
+  },
+  {
    "tip": "parte",
    "fel": "ipoteza",
    "titlu": "Scopul"
@@ -53,7 +108,7 @@ const date: Capitol = {
    "tip": "pas",
    "fel": "intrare",
    "eticheta": "Intrare",
-   "text": "versiunea redusă a datasetului: 330.926 de pachete (rânduri), fiecare cu 33 de variabile și ținta target, care spune dacă pachetul este normal sau ce atac este."
+   "text": "versiunea redusă a datasetului (fișierul mqttdataset_reduced.csv, unul dintre cele 24 de fișiere de pe Kaggle; setul complet are 9,57 GB): 330.926 de pachete (rânduri), fiecare cu 33 de variabile și ținta target, care spune dacă pachetul este normal sau ce atac este."
   },
   {
    "tip": "pas",

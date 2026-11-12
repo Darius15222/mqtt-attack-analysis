@@ -13,6 +13,79 @@ const date: Capitol = {
    "text": "Înainte să comparăm atacurile cu traficul normal, ne uităm la fiecare variabilă pe tot setul: ce tip are, ce valori ia și dacă are valori ieșite din tipar. De aici alegem cum descriem datele și ce teste folosim în capitolul 6."
   },
   {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "aflăm că 12 variabile au aceeași valoare peste tot, că nicio variabilă numerică nu are forma de clopot și că valorile extreme vin de la grupuri reale de pachete, nu din greșeli."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "rămân 19 variabile utile; folosim mediana și teste pe ranguri, iar valorile extreme le păstrăm."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Media",
+     "suma valorilor împărțită la numărul lor",
+     "o trag în sus câteva valori foarte mari",
+     "2, 3, 3, 4, 100 → 22,4"
+    ],
+    [
+     "Mediana",
+     "valoarea din mijloc, după ce le pui în ordine",
+     "valoarea tipică; nu o strică valorile extreme",
+     "2, 3, 3, 4, 100 → 3"
+    ],
+    [
+     "Q1, Q3",
+     "valorile sub care se află un sfert, respectiv trei sferturi din pachete",
+     "între Q1 și Q3 e jumătatea din mijloc a pachetelor",
+     "0, 2, 5, 9, 20 → Q1 = 2, Q3 = 9"
+    ],
+    [
+     "Distribuție normală",
+     "forma de clopot: multe valori la mijloc, tot mai puține spre capete",
+     "de ea depinde dacă folosim media sau mediana",
+     "înălțimea oamenilor"
+    ],
+    [
+     "Asimetria",
+     "cât de „trasă” e distribuția într-o parte",
+     "0 = simetrică; mare = coadă lungă spre valori mari",
+     "tcp.len: 28"
+    ],
+    [
+     "Kurtosis",
+     "cât de multe valori extreme are distribuția, față de clopot",
+     "0 = ca un clopot; mare = multe valori extreme",
+     "tcp.len: 937"
+    ],
+    [
+     "Valoare extremă (regula IQR)",
+     "o valoare mult peste sau sub restul: în afara intervalului [Q1 - 1,5 · IQR, Q3 + 1,5 · IQR], cu IQR = Q3 - Q1",
+     "nu e neapărat o greșeală",
+     "tcp.len peste 35"
+    ],
+    [
+     "Rang",
+     "locul unei valori când le pui în ordine",
+     "testele pe ranguri nu sunt trase de valorile extreme",
+     "5, 100, 20 → rangurile 1, 3, 2"
+    ]
+   ]
+  },
+  {
    "tip": "parte",
    "fel": "ipoteza",
    "titlu": "Scopul"
@@ -232,7 +305,7 @@ const date: Capitol = {
      "0,43% cu valoare ≠ 0"
     ],
     [
-     "5. Mesaj „will\" (testament)"
+     "5. Mesaj „will” (testament)"
     ],
     [
      "mqtt.conflag.willflag",
@@ -383,6 +456,11 @@ const date: Capitol = {
   {
    "tip": "text",
    "text": "Graficele de mai jos sunt câte unul pe variabilă: histogramă la numerice, procente la categorii. Nu există grafic pentru cele 12 constante (o singură bară) și pentru mqtt.msg și mqtt.msgid (text și identificator)."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare grafic e o variabilă. La histograme, fiecare bară arată câte pachete au valori în acel interval; o bară înaltă înseamnă multe pachete. Axa e logaritmică (1, 10, 100, 1.000 la distanțe egale) când valorile sunt și foarte mici, și foarte mari. La graficele cu procente, fiecare bară e o valoare, iar înălțimea ei e procentul de pachete care o au."
   },
   {
    "tip": "galerie",
@@ -576,7 +654,7 @@ const date: Capitol = {
    "elemente": [
     "tcp.flags: 183.548 din 330.926 de pachete au 0x00000018, adică 183.548 / 330.926 = 55,46%;",
     "mqtt.dupflag: 18.707 pachete au valoarea 1, adică 5,65%;",
-    "tcp.len: mediana 10, Q1 = 0, Q3 = 14 (calculul pozițiilor este în secțiunea 4)."
+    "tcp.len: mediana 10, Q1 = 0, Q3 = 14 (calculul pozițiilor este în capitolul 4)."
    ]
   },
   {
@@ -631,13 +709,28 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
-   "tip": "lista",
-   "ordonata": false,
-   "start": 1,
-   "elemente": [
-    "12 variabile sunt constante și 2 nu sunt măsurători (mqtt.msg, mqtt.msgid), deci rămân 19 variabile pentru capitolele următoare (5.1).",
-    "Nicio variabilă numerică nu are distribuție normală, deci folosim mediana [Q1, Q3] și teste pe ranguri, care înlocuiesc valorile cu locul lor în ordine crescătoare (5.2, 5.3, capitolul 6).",
-    "Valorile extreme nu sunt erori: tcp.len mare apare aproape numai la dos (99%), iar pauzele lungi (tcp.time_delta mare) mai ales la traficul normal (64%). Le păstrăm, pentru că tocmai ele deosebesc clasele (5.4)."
+   "tip": "tabel",
+   "antet": [
+    "Ce voiam să aflăm",
+    "Cum am aflat",
+    "Rezultat"
+   ],
+   "randuri": [
+    [
+     "Ce variabile nu ajută (sunt constante)?",
+     "valorile fiecărei coloane (5.1)",
+     "12 sunt constante și 2 nu sunt măsurători (mqtt.msg, mqtt.msgid): rămân 19 variabile."
+    ],
+    [
+     "Au variabilele numerice distribuție normală?",
+     "asimetria și kurtosis (5.2), media față de mediană (5.3)",
+     "Nu (tcp.len: asimetria 28, kurtosis 937), deci folosim mediana [Q1, Q3] și teste pe ranguri (capitolul 6)."
+    ],
+    [
+     "Există valori extreme?",
+     "regula IQR (5.4)",
+     "Da, dar nu sunt erori: tcp.len mare apare aproape numai la dos (99%), iar pauzele lungi mai ales la traficul normal (64%). Le păstrăm, pentru că deosebesc clasele."
+    ]
    ]
   }
  ]

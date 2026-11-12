@@ -14,7 +14,68 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Tabelul descrie fiecare dintre cele 34 de coloane (33 de variabile și ținta), grupate pe 7 grupe după ce descriu în protocol: TCP, antetul MQTT, conectare, răspunsul la conectare, mesajul „will\", abonare și conținutul mesajului."
+   "eticheta": "Pe scurt",
+   "text": "fiecare pachet are 33 de variabile (coloane) și o țintă, care spune dacă pachetul e normal sau ce atac e. Le grupăm după partea din pachet pe care o descriu (TCP, antetul MQTT, conectarea și așa mai departe) și arătăm ce valori au la normal și la atac."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "0 la un câmp MQTT înseamnă de obicei că pachetul nu are acel câmp; valorile care apar aproape numai la atac sunt primii candidați pentru recunoașterea atacurilor."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Variabilă",
+     "o coloană din date: o proprietate a pachetului",
+     "are o valoare la fiecare pachet",
+     "tcp.len = lungimea conținutului TCP"
+    ],
+    [
+     "Numerică",
+     "valoarea e o cantitate",
+     "are sens „mai mult” sau „mai puțin” și se poate face media",
+     "tcp.len, tcp.time_delta"
+    ],
+    [
+     "Categorială",
+     "valoarea e un nume, scris ca număr sau cod",
+     "nu are sens „mai mult”; se numără câte pachete au fiecare valoare",
+     "mqtt.msgtype 3 = PUBLISH"
+    ],
+    [
+     "Binară",
+     "are doar valorile 0 și 1 (nu sau da)",
+     "se citește procentul de 1",
+     "mqtt.dupflag = 1: mesaj retrimis"
+    ],
+    [
+     "Flag TCP",
+     "semnal din antetul TCP care spune ce face pachetul",
+     "flagurile se combină",
+     "SYN = deschid conexiunea, ACK = am primit, PSH = trimit date, FIN = închid, RST = opresc brusc"
+    ],
+    [
+     "Cod hex",
+     "combinația de flaguri scrisă în baza 16",
+     "fiecare flag are valoarea lui, iar codul e suma lor",
+     "0x18 = PSH (0x08) + ACK (0x10)"
+    ]
+   ]
+  },
+  {
+   "tip": "text",
+   "text": "Tabelul descrie fiecare dintre cele 34 de coloane (33 de variabile și ținta), grupate pe 7 grupe după ce descriu în protocol: TCP, antetul MQTT, conectare, răspunsul la conectare, mesajul „will”, abonare și conținutul mesajului."
   },
   {
    "tip": "parte",
@@ -81,7 +142,7 @@ const date: Capitol = {
      "tcp.flags",
      "TCP",
      "TCP Header",
-     "Steagurile TCP ale pachetului, scrise în hex (de exemplu 0x18 = PSH+ACK, 0x10 = ACK, 0x02 = SYN, 0x04 = RST).",
+     "Flagurile TCP ale pachetului, scrise în hex (de exemplu 0x18 = PSH+ACK, 0x10 = ACK, 0x02 = SYN, 0x04 = RST).",
      "0x00000018 (63,3%)",
      "0x00000011 (2,5% din atac)"
     ],
@@ -284,7 +345,7 @@ const date: Capitol = {
      "5 (0,9% din atac)"
     ],
     [
-     "5. Mesaj „will\" (testament)"
+     "5. Mesaj „will” (testament)"
     ],
     [
      "14",
@@ -431,7 +492,7 @@ const date: Capitol = {
    "start": 1,
    "elemente": [
     "Cele 34 de coloane descriu 7 părți ale pachetului: TCP, antetul MQTT, conectarea, răspunsul la conectare, mesajul „will”, abonarea și conținutul mesajului.",
-    "Valoarea 0 la un câmp MQTT înseamnă de obicei că pachetul nu are acel câmp. De exemplu, mqtt.protoname este MQTT doar la cele 3.282 de pachete CONNECT și 0 în rest.",
+    "Valoarea 0 la un câmp MQTT înseamnă de obicei că pachetul nu are acel câmp.",
     "Unele valori apar aproape numai la atac (coloana „Exemplu atac”). Ele sunt primii candidați pentru recunoașterea atacurilor în capitolele următoare."
    ]
   }

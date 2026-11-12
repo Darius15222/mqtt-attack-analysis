@@ -13,6 +13,16 @@ const date: Capitol = {
    "text": "Capitolele 5-11 au răspuns, fiecare, la o parte din întrebare. Aici le adunăm într-un singur răspuns, pentru fiecare atac."
   },
   {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "arborii și regulile de asociere ajung la aceleași variabile (mqtt.qos, mqtt.msgtype, tcp.flags, tcp.len și tcp.time_delta), regresiile confirmă tcp.len și tcp.time_delta, iar fiecare atac are cel puțin un semn al lui (tabelul de mai jos)."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "fiecare atac are un semn care apare (aproape) numai la el, dar el marchează doar o parte din pachetele atacului."
+  },
+  {
    "tip": "parte",
    "fel": "ipoteza",
    "titlu": "Scopul"
@@ -79,12 +89,12 @@ const date: Capitol = {
     ],
     [
      "slowite",
-     "mqtt.kalive = 65.535 (11%, doar aici); flagurile SYN și SYN+ACK (11%); pachete cu conținut, dar fără mesaj MQTT",
+     "mqtt.kalive = 65.535 (11%, doar aici); SYN+ACK venit după 3-26 µs (regula din 11.4; SYN+ACK singur apare și la bruteforce și malformed); pachete cu conținut, dar fără mesaj MQTT",
      "Ține conexiunile deschise cât mai mult (keep alive maxim, aproximativ 18 ore), ca serverul să rămână fără conexiuni libere."
     ],
     [
      "flood",
-     "pachete foarte mari (tcp.len peste 1.460; Q3 32.759 față de 13) și trimise rapid",
+     "pachete foarte mari (tcp.len peste 1.460; Q3 32.759 față de 13)",
      "Sunt doar 613 pachete, deci concluzia este mai puțin sigură."
     ]
    ]
@@ -98,7 +108,7 @@ const date: Capitol = {
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "bruteforce, malformed și slowite seamănă (multe pachete fără mesaj MQTT) și se deosebesc prin flaguri (FIN+ACK, RST, SYN) și prin mqtt.kalive;",
+    "bruteforce, malformed și slowite seamănă (multe pachete fără mesaj MQTT) și se deosebesc prin flaguri (FIN+ACK la bruteforce, RST și FIN+PSH+ACK la malformed) și prin mqtt.kalive (slowite);",
     "dos și flood se văd din mărimea și viteza pachetelor; doar dos are mqtt.qos = 1 și mqtt.dupflag = 1."
    ]
   },
@@ -123,12 +133,26 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
+   "tip": "tabel",
+   "antet": [
+    "Ce voiam să aflăm",
+    "Cum am aflat",
+    "Rezultat"
+   ],
+   "randuri": [
+    [
+     "După ce valori recunoaștem fiecare atac?",
+     "rezultatele capitolelor 5-11, puse împreună (tabelul de mai sus)",
+     "Fiecare atac are valori care apar (aproape) numai la el. Arborii și regulile ajung la mqtt.qos, mqtt.msgtype, tcp.flags, tcp.len și tcp.time_delta; regresiile confirmă tcp.len și tcp.time_delta."
+    ]
+   ]
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
     "Fiecare atac are valori care apar numai (sau aproape numai) la el, dar ele marchează doar o parte din pachetele lui: de exemplu, mqtt.qos = 1 la 41,8% din pachetele dos, mqtt.kalive = 65.535 la 11% din cele slowite.",
-    "Toate metodele ajung la aceleași variabile: mqtt.qos, mqtt.msgtype, tcp.flags, tcp.len și tcp.time_delta.",
     "Limita: confirmările ACK goale ale atacurilor arată la fel ca cele normale, deci nu pot fi recunoscute doar din pachet."
    ]
   }

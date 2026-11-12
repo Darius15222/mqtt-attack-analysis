@@ -6,7 +6,7 @@ Reproduce:
   - corr_<clasă>.png: aceeași hartă pe fiecare clasă
     (corr_legitimate.png, corr_dos.png, ..., corr_flood.png);
   - corr_scatter.png: trei diagrame de dispersie pe ranguri, cu dreapta de regresie
-    și R Spearman; la consolă se afișează R și p pentru fiecare pereche.
+    și ρ Spearman; la consolă se afișează ρ și p pentru fiecare pereche.
 
 Intrare:  CSV-ul MQTTset și folderul de ieșire (trebuie să existe).
 Ieșire:   fișierele PNG de mai sus + text la consolă.
@@ -112,7 +112,7 @@ for ax, (var_x, var_y) in zip(axe, PERECHI):
 
     ax.set_xlabel(f"{var_x} (rang)")
     ax.set_ylabel(f"{var_y} (rang)")
-    ax.set_title(f"R (Spearman) = {format_ro(R)}, p < 0,001", fontsize=10)
+    ax.set_title(f"ρ (Spearman) = {format_ro(R)}, p < 0,001", fontsize=10)
     print(var_x, var_y, R, p)
 
 fig.tight_layout()

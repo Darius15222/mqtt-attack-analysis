@@ -10,7 +10,92 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Din capitolul 8 știm că o dreaptă nu prezice bine valorile pachetelor. Acum prezicem direct ce ne interesează: cât de probabil este ca un pachet să fie atac, după valorile lui, și ce variabile cresc sau scad această probabilitate. Ținta este is_attack: 0 pentru traficul normal (legitimate) și 1 pentru oricare dintre cele 5 atacuri, câte 165.463 de pachete în fiecare grup."
+   "text": "Din capitolul 8 știm că o dreaptă nu prezice bine valorile pachetelor. Acum prezicem direct probabilitatea ca un pachet să fie atac și aflăm ce variabile o cresc sau o scad. Ținta este is_attack: 0 pentru traficul normal, 1 pentru oricare dintre cele 5 atacuri (câte 165.463 de pachete)."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Pe scurt",
+   "text": "mqtt.qos = 1 apare numai la atacuri (separare), așa că modelul obișnuit nu-i poate da un coeficient; regresia Firth îl estimează, dar doar confirmă că mqtt.qos = 1 înseamnă sigur atac. Modelul final, fără mqtt.qos și mqtt.dupflag, arată că un pachet mai mare și venit mai repede are șansă mai mare să fie atac. Prinde dos și flood, dar nu și pachetele goale."
+  },
+  {
+   "tip": "text",
+   "eticheta": "De ținut minte",
+   "text": "separare → Firth → model fără separare → prinde dos și flood, nu și restul → arbori (capitolul 10)."
+  },
+  {
+   "tip": "subtitlu",
+   "text": "Termeni noi"
+  },
+  {
+   "tip": "tabel",
+   "antet": [
+    "Termen",
+    "Ce reprezintă",
+    "Cum se citește",
+    "Exemplu"
+   ],
+   "randuri": [
+    [
+     "Logit (scor)",
+     "β0 + β1 · x1 + …, din care iese probabilitatea: p = 1 / (1 + e la puterea -logit)",
+     "logit 0 → p = 0,5; logit mare → p aproape de 1",
+     "logit = -1 + 0,1 · tcp.len: pachet gol p = 0,27"
+    ],
+    [
+     "Verosimilitate",
+     "cât de bine se potrivesc probabilitățile prezise cu realitatea",
+     "algoritmul alege coeficienții care o fac cât mai mare",
+     "0,88 · (1 - 0,27) = 0,64"
+    ],
+    [
+     "Std. Error",
+     "cât de sigur e un coeficient",
+     "valoarea reală e aproximativ coeficientul ± 2 · Std. Error; uriașă = coeficientul nu înseamnă nimic",
+     "tcp.len: 0,0293 ± 2 · 0,0005, adică între 0,0283 și 0,0303"
+    ],
+    [
+     "z",
+     "coeficientul împărțit la Std. Error: de câte erori e departe de 0",
+     "|z| peste 1,96 → p sub 0,05; nu spune cât de mare e efectul",
+     "tcp.len: 63,47"
+    ],
+    [
+     "Devianța",
+     "cât de prost prezice modelul",
+     "mai mică = mai bine",
+     "458.761 fără variabile, 337.501 cu cele 3"
+    ],
+    [
+     "Separare",
+     "o valoare apare numai la o clasă",
+     "coeficientul ei crește la nesfârșit",
+     "mqtt.qos = 1 → mereu atac"
+    ],
+    [
+     "Regresia Firth",
+     "o penalizare care oprește coeficienții să crească la nesfârșit",
+     "erorile standard redevin mici",
+     "eroarea lui mqtt.qos: 14.714 → 2,35"
+    ],
+    [
+     "VIF",
+     "cât de bine se poate ghici o variabilă din celelalte",
+     "peste 5-10 = spune același lucru ca altele, coeficienții nu mai sunt siguri",
+     "mqtt.len: 42,5"
+    ],
+    [
+     "EPV",
+     "câte atacuri sunt la fiecare variabilă din model",
+     "minim 10-15",
+     "aproximativ 33.000"
+    ],
+    [
+     "Distanța Cook",
+     "cât schimbă modelul un singur pachet",
+     "peste 0,5 = pachetul merită verificat; peste 1 = influent",
+     "maxim 0,0197"
+    ]
+   ]
   },
   {
    "tip": "parte",
@@ -90,7 +175,7 @@ const date: Capitol = {
     "scorul: logit = β0 + β1 · x1 + β2 · x2 + ... (poate fi orice număr);",
     "probabilitatea: p = 1 / (1 + e la puterea -logit); logit 0 dă p = 0,5, logit mare dă p aproape de 1, logit foarte negativ dă p aproape de 0;",
     "un coeficient pozitiv crește probabilitatea de atac, unul negativ o scade;",
-    "coeficienții se caută pas cu pas: algoritmul îi ajustează până când probabilitățile prezise se potrivesc cât mai bine cu etichetele reale (atac sau normal). Metoda se numește verosimilitate maximă."
+    "coeficienții se aleg astfel încât probabilitățile prezise să se potrivească cât mai bine cu realitatea (atac sau normal); metoda se numește verosimilitate maximă."
    ]
   },
   {
@@ -141,8 +226,13 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "pentru fiecare variabilă, o cutie la traficul normal și una la atac. Cutia cuprinde jumătatea din mijloc a pachetelor, iar linia din ea e mediana; axa e logaritmică."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce înseamnă",
-   "text": "la atac, tcp.len și mqtt.len au Q3 mult mai mare (pachete mari la dos și flood), iar tcp.time_delta este mult mai mic (pachete mai dese: timpul tipic este 1,2e-05 secunde la atac, față de 7,6e-05 la normal). Graficul este pe scară logaritmică, pentru că valorile acoperă mai multe ordine de mărime."
+   "text": "la atac, pachetele sunt mai mari (tcp.len și mqtt.len) și vin mai des: timpul tipic este 0,000012 secunde la atac, față de 0,000076 la normal."
   },
   {
    "tip": "sectiune",
@@ -171,15 +261,23 @@ const date: Capitol = {
     ],
     [
      "2. Independența observațiilor",
-     "Încălcată: pachetele aceleiași conexiuni seamănă între ele, iar datele nu spun care pachete sunt din aceeași conexiune. O notăm ca limită în Concluzie."
+     "Încălcată: pachetele aceleiași conexiuni seamănă între ele. O notăm ca limită în Concluzie."
     ],
     [
-     "3. Absența separării perfecte",
-     "Încălcată: mqtt.qos = 1 (54.431 de pachete) și mqtt.dupflag = 1 (18.707) apar doar la atacuri, deci din ele atacul se prezice perfect (separare cvasi-completă: valoarea 1 apare doar la atac, valoarea 0 la ambele clase). Vezi 9.3."
+     "3. Absența multicoliniarității (VIF)",
+     "Încălcată în modelul cu 5 variabile: mqtt.len 42,5 și mqtt.qos 42,9 (peste 10); tcp.len 1,08, tcp.time_delta 1,00, mqtt.dupflag 1,44. În modelul final (9.4), fără mqtt.qos și mqtt.dupflag, VIF devine 1,08, 1,00 și 1,08."
     ],
     [
-     "4. Absența valorilor extreme influente (distanța Cook)",
-     "Respectată, la modelul final (9.4). Distanța Cook arată cât s-ar schimba modelul dacă am scoate un singur pachet. Cea mai mare este 0,0197, mult sub pragul de 0,5: niciun pachet singur nu schimbă rezultatul. Graficul este sub tabel."
+     "4. Absența separării perfecte",
+     "Încălcată: mqtt.qos = 1 și mqtt.dupflag = 1 apar doar la atacuri. Vezi 9.3."
+    ],
+    [
+     "5. Dimensiunea eșantionului (EPV)",
+     "Respectată: 165.463 de atacuri la 5 predictori, adică aproximativ 33.000 pe predictor, mult peste minimul de 10-15."
+    ],
+    [
+     "6. Absența valorilor extreme influente (distanța Cook)",
+     "Respectată: niciun pachet singur nu schimbă modelul (distanța Cook maximă este 0,0197, sub pragul de 0,5). Graficul este sub tabel."
     ]
    ]
   },
@@ -188,6 +286,11 @@ const date: Capitol = {
    "src": "cook.png",
    "latime": 1300,
    "inaltime": 520
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "fiecare linie verticală e un pachet (în ordinea din fișier), iar înălțimea ei e distanța Cook, adică cât s-ar schimba modelul fără acel pachet. Pragul de îngrijorare e 0,5; cea mai înaltă linie ajunge doar la 0,0197."
   },
   {
    "tip": "sectiune",
@@ -201,16 +304,12 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "Problema",
-   "text": "în modelul obișnuit cu toate cele 5 variabile, la mqtt.qos și mqtt.dupflag, erorile standard sunt uriașe (14.714 și 23.026), iar p este aproape 1. Aceasta este separarea cvasi-completă (o valoare apare doar la atacuri): când mqtt.qos = 1, pachetul este mereu atac, deci algoritmul tot mărește coeficientul, ca să ajungă la probabilitatea 1. De aceea erorile standard sunt atât de mari și p nu arată nimic, deși variabilele sunt foarte informative. Estimările lor nu sunt de încredere."
-  },
-  {
-   "tip": "text",
-   "text": "Se vede și din pașii algoritmului: coeficientul lui mqtt.qos crește la fiecare pas (55,5 după 10 pași, 79,8 după 30) și nu se oprește niciodată, deci valoarea lui nu înseamnă nimic."
+   "text": "mqtt.qos = 1 și mqtt.dupflag = 1 apar doar la atacuri (separare). Ca să ajungă la probabilitatea 1, algoritmul mărește coeficientul lui mqtt.qos la nesfârșit (55,5 după 10 pași, 79,8 după 30), iar erorile standard ies uriașe (14.714 și 23.026). Rezultatul nu înseamnă nimic, deși variabilele sunt foarte utile."
   },
   {
    "tip": "text",
    "eticheta": "Soluția",
-   "text": "regresia Firth adaugă o penalizare care împiedică coeficienții să crească la nesfârșit, deci mqtt.qos poate rămâne în model."
+   "text": "regresia Firth adaugă o penalizare care împiedică coeficienții să crească la nesfârșit."
   },
   {
    "tip": "text",
@@ -224,85 +323,8 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "eticheta": "Cum se calculează χ² (chi-pătrat)",
-   "text": "cât de mult se strică modelul dacă scoatem variabila; cu cât e mai mare, cu atât variabila contează mai mult."
-  },
-  {
-   "tip": "text",
    "eticheta": "Pe datele noastre",
-   "text": ""
-  },
-  {
-   "tip": "tabel",
-   "antet": [
-    "Variabilă",
-    "Estimate",
-    "Std. Error",
-    "χ²",
-    "p"
-   ],
-   "randuri": [
-    [
-     "(Intercept)",
-     "0,0771",
-     "0,0055",
-     "",
-     ""
-    ],
-    [
-     "tcp.len",
-     "0,1433",
-     "0,0019",
-     "22.995",
-     "sub 0,001"
-    ],
-    [
-     "mqtt.len",
-     "-0,2873",
-     "0,0024",
-     "38.152",
-     "sub 0,001"
-    ],
-    [
-     "tcp.time_delta",
-     "-3,7781",
-     "0,0550",
-     "16.953",
-     "sub 0,001"
-    ],
-    [
-     "mqtt.qos",
-     "60,7032",
-     "2,3456",
-     "47.003",
-     "sub 0,001"
-    ],
-    [
-     "mqtt.dupflag",
-     "-11,4496",
-     "2,7572",
-     "9,81",
-     "0,002"
-    ]
-   ]
-  },
-  {
-   "tip": "text",
-   "eticheta": "Ce înseamnă",
-   "text": ""
-  },
-  {
-   "tip": "lista",
-   "ordonata": false,
-   "start": 1,
-   "elemente": [
-    "erorile standard sunt acum finite (2,35 și 2,76, față de 14.714 și 23.026). Coeficientul mare al lui mqtt.qos (60,7) arată doar separarea, nu o mărime de efect;",
-    "mqtt.dupflag primește -11,4, un coeficient fără sens practic: toate pachetele cu dupflag = 1 au și qos = 1 și sunt atacuri, deci modelul doar împarte separarea între cele două (60,7 - 11,4 = 49,3, tot uriașă)."
-   ]
-  },
-  {
-   "tip": "text",
-   "text": "Pentru coeficienți ușor de interpretat facem, în 9.4, un model fără variabilele care separă."
+   "text": "cu Firth, erorile standard devin mici (2,35 și 2,76), dar coeficientul lui mqtt.qos (60,7) spune doar că mqtt.qos = 1 înseamnă sigur atac; în același model, mqtt.len are coeficientul -0,287. De aceea, în 9.4 facem modelul fără aceste două variabile."
   },
   {
    "tip": "sectiune",
@@ -311,7 +333,7 @@ const date: Capitol = {
   {
    "tip": "text",
    "eticheta": "De ce",
-   "text": "mqtt.qos și mqtt.dupflag separă perfect (apar doar la atacuri); fără ele, coeficienții se pot citi."
+   "text": "mqtt.qos și mqtt.dupflag separă perfect (apar doar la atacuri), iar mqtt.qos are și VIF 42,9 (9.2); fără ele, coeficienții se pot citi."
   },
   {
    "tip": "text",
@@ -360,21 +382,26 @@ const date: Capitol = {
   },
   {
    "tip": "text",
-   "text": "Devianța (cât de prost prezice modelul; mai mică = mai bine) scade de la 458.761 fără nicio variabilă la 337.501 cu cele 3 variabile."
+   "text": "Devianța scade de la 458.761 fără nicio variabilă la 337.501 cu cele 3 variabile."
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citesc coloanele",
+   "text": "Estimate e coeficientul, iar z = Estimate / Std. Error. Dacă |z| trece de 1,96, p e sub 0,05. La noi toate trec mult de 1,96 (tcp.len 63,47, mqtt.len 16,81, tcp.time_delta -133,61), deci toate contează."
   },
   {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "tcp.len are coeficient pozitiv (0,0293): un pachet cu mai mult conținut TCP are probabilitate mai mare să fie atac. La fel mqtt.len (0,0048);",
-    "tcp.time_delta are coeficient negativ (-3,34): cu cât trece mai puțin timp de la pachetul anterior, cu atât crește probabilitatea de atac. Se potrivește cu medianele din 9.1 (1,2e-05 la atac față de 7,6e-05 la normal);",
-    "semnul lui mqtt.len se schimbă între modelul cu toate variabilele (-0,287) și cel final (0,0048). Motivul: mqtt.len și mqtt.qos spun aproape același lucru (corelația Pearson 0,99, 7.4), așa că modelul cu amândouă împarte efectul între ele, chiar cu semn schimbat."
+    "tcp.len și mqtt.len au coeficienți pozitivi (0,0293 și 0,0048): un pachet mai mare are probabilitate mai mare să fie atac;",
+    "tcp.time_delta are coeficient negativ (-3,34): un pachet venit mai repede are probabilitate mai mare să fie atac;",
+    "semnul lui mqtt.len se schimbă între modelul cu toate variabilele (-0,287, Firth, 9.3) și cel final (0,0048). Este efectul multicoliniarității: mqtt.len și mqtt.qos spun aproape același lucru (corelația Pearson 0,99, 7.4; VIF = 42,5 în modelul cu 5 variabile), așa că modelul cu amândouă împarte efectul între ele, chiar cu semn schimbat."
    ]
   },
   {
    "tip": "text",
-   "eticheta": "Exemplu de calcul",
+   "eticheta": "Exemplu",
    "text": ""
   },
   {
@@ -382,7 +409,7 @@ const date: Capitol = {
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "pachet normal tipic (tcp.len = 13, tcp.time_delta = 0,000076, mqtt.len = 11): logit = -0,3084 + 0,0293 · 13 - 3,3445 · 0,000076 + 0,0048 · 11 = 0,125, deci p = 1 / (1 + e la puterea -0,125) = 0,53; deși pachetul este normal, p trece puțin de 0,5: modelul nu separă bine pachetele mici normale de atacuri (se vede în graficul cu probabilitățile, mai jos);",
+    "pachet normal tipic (medianele din 6.1: tcp.len = 12, tcp.time_delta = 0,000076, mqtt.len = 10): logit = -0,3084 + 0,0293 · 12 - 3,3445 · 0,000076 + 0,0048 · 10 = 0,091, deci p = 0,52; deși pachetul este normal, p trece puțin de 0,5;",
     "pachet dos tipic (116; 0,000003; 168): logit = 3,90 și p = 0,98;",
     "pachet gol venit după o secundă (0; 1; 0): logit = -3,65 și p = 0,025."
    ]
@@ -392,6 +419,11 @@ const date: Capitol = {
    "src": "log_curba.png",
    "latime": 1050,
    "inaltime": 480
+  },
+  {
+   "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "curba arată probabilitatea de atac dată de model (pe verticală, de la 0 la 1) pe măsură ce crește timpul de la pachetul anterior (pe orizontală), pentru un pachet cu lungimile tipice traficului normal."
   },
   {
    "tip": "text",
@@ -405,6 +437,11 @@ const date: Capitol = {
   },
   {
    "tip": "text",
+   "eticheta": "Cum se citește",
+   "text": "pe orizontală, probabilitatea de atac dată de model (0 = sigur normal, 1 = sigur atac); pe verticală, câte pachete au primit-o (scară logaritmică). Albastru = pachete normale în realitate, roz = atacuri, mov închis = cele două se suprapun. Un model perfect ar avea tot albastrul lângă 0 și tot rozul lângă 1."
+  },
+  {
+   "tip": "text",
    "eticheta": "Ce înseamnă",
    "text": "probabilitatea prezisă pentru fiecare pachet:"
   },
@@ -415,7 +452,7 @@ const date: Capitol = {
    "elemente": [
     "normal: nu depășește 0,59 (mediana 0,42);",
     "dos și flood: 43% din pachetele dos și 49% din cele flood primesc peste 0,9 (pachete mari și dese);",
-    "bruteforce, malformed și slowite: cel puțin jumătate din pachete primesc aproximativ 0,42, aceeași valoare ca pachetele normale goale: au tcp.len și mqtt.len 0, iar logit = -0,3084 dă p = 0,42. Pentru ele cele 3 variabile nu ajung; le deosebesc mai ales tcp.flags (6.3) și câmpurile de conectare (capitolul 13), care nu sunt în model."
+    "bruteforce, malformed și slowite: cel puțin jumătate din pachete primesc 0,42, ca pachetele normale goale (tcp.len și mqtt.len 0). Pentru ele cele 3 variabile nu ajung; le deosebesc tcp.flags (6.3) și câmpurile de conectare."
    ]
   },
   {
@@ -424,15 +461,37 @@ const date: Capitol = {
    "titlu": "Concluzia"
   },
   {
+   "tip": "tabel",
+   "antet": [
+    "Ce credem",
+    "Cum verificăm",
+    "Rezultat",
+    "Verdict"
+   ],
+   "randuri": [
+    [
+     "Pachetele mari au probabilitate mai mare să fie atac.",
+     "regresia logistică, modelul final (9.4)",
+     "tcp.len +0,0293 și mqtt.len +0,0048, ambele cu p sub 0,001",
+     "Confirmată. Coeficienți pozitivi: pachet mai mare, șansă mai mare."
+    ],
+    [
+     "Pachetele dese au probabilitate mai mare să fie atac.",
+     "regresia logistică, modelul final (9.4)",
+     "tcp.time_delta -3,34, p sub 0,001",
+     "Confirmată. Coeficient negativ: pachet venit mai repede, șansă mai mare."
+    ]
+   ]
+  },
+  {
    "tip": "lista",
    "ordonata": false,
    "start": 1,
    "elemente": [
-    "mqtt.qos și mqtt.dupflag apar doar la atacuri (separare cvasi-completă), deci regresia obișnuită nu le poate estima. Regresia Firth le dă erori standard finite, dar coeficienții lor arată doar separarea (9.3).",
-    "În modelul final, un pachet are probabilitate mai mare de atac când are mai mult conținut (tcp.len, mqtt.len) și când vine mai repede după pachetul anterior (tcp.time_delta mic) (9.4).",
-    "Modelul recunoaște bine pachetele mari și dese: 43% din pachetele dos și 49% din cele flood primesc probabilitate peste 0,9, iar pachetele normale nu trec de 0,59 (9.4).",
-    "Nu deosebește bruteforce, malformed și slowite: cel puțin jumătate din pachetele lor primesc în jur de 0,42, ca pachetele normale goale. Pentru ele trebuie tcp.flags și câmpurile de conectare, care nu sunt în model.",
-    "Independența este încălcată (pachete din aceleași conexiuni). Rezultatele arată ce variabile diferențiază atacul de normal, dar p și erorile standard sunt prea optimiste."
+    "mqtt.qos și mqtt.dupflag apar doar la atacuri, deci modelul obișnuit nu le poate estima; Firth le estimează, dar coeficienții arată doar că mqtt.qos = 1 înseamnă sigur atac (9.3).",
+    "Modelul recunoaște dos și flood: 43% și 49% din pachetele lor primesc peste 0,9, iar pachetele normale nu trec de 0,59 (9.4).",
+    "Nu deosebește bruteforce, malformed și slowite de pachetele normale goale; pentru ele trebuie tcp.flags, pe care le folosesc arborii (capitolul 10).",
+    "Limită: pachetele aceleiași conexiuni nu sunt independente, deci p și erorile standard sunt prea optimiste."
    ]
   }
  ]

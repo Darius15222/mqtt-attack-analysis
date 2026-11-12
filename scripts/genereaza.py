@@ -1,12 +1,12 @@
 """
-Transformă documentul temei (MQTTset_tema.docx) în datele site-ului.
+Transformă documentul pentru site (MQTTset_site.docx: tema, cu blocurile didactice) în datele site-ului.
 
 Ieșire:
   - src/data/capNN.ts     câte un fișier pe capitol, cu lista de blocuri (vezi tipurile din src/data/tipuri.ts)
   - public/img/*.png      imaginile din document, cu numele din docx (ex. arbore_clasificare.png)
 
 Rulare (din folderul site-ului):
-  python3 scripts/genereaza.py ../../Facultate/ai-ml/MQTTset_tema.docx
+  python3 scripts/genereaza.py ../../Facultate/ai-ml/MQTTset_site.docx
 
 Atenție: suprascrie fișierele de mai sus. Modificările făcute de mână în capNN.ts se pierd.
 
